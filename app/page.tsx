@@ -1,69 +1,574 @@
-import Image from "next/image";
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { Check, ChevronLeft, Copy, Loader2, Mail, Phone } from "lucide-react";
+import type { Garage, GaragesListResponse, Segment } from "@/lib/types";
+
+type View = "liste" | "fiche";
+type SegmentFilter = Segment | "all";
+type ConfirmDialog = "email" | "tel" | null;
+type ActiveInput = "tel" | "email" | null;
+
+const SEGMENT_LABELS: Record<SegmentFilter, string> = {
+  all: "Tous",
+  structure_employeuse: "Structure employeuse",
+  solo_non_employeur: "Solo non employeur",
+};
+
+function buildGaragesUrl(params: { segment: SegmentFilter; hideFranchise: boolean; cursor?: string | null }) {
+  const search = new URLSearchParams();
+  if (params.segment !== "all") search.set("segment", params.segment);
+  search.set("hideFranchise", String(params.hideFranchise));
+  if (params.cursor) search.set("cursor", params.cursor);
+  return `/api/garages?${search.toString()}`;
+}
 
 export default function Home() {
+  const [view, setView] = useState<View>("liste");
+
+  // Filtres liste
+  const [segmentFilter, setSegmentFilter] = useState<SegmentFilter>("all");
+  const [hideFranchise, setHideFranchise] = useState(true);
+
+  // Données liste
+  const [garages, setGarages] = useState<Garage[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingList, setLoadingList] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [listError, setListError] = useState<string | null>(null);
+
+  // Fiche
+  const [selectedGarage, setSelectedGarage] = useState<Garage | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [activeInput, setActiveInput] = useState<ActiveInput>(null);
+  const [telValue, setTelValue] = useState("");
+  const [emailValue, setEmailValue] = useState("");
+  const [telSaved, setTelSaved] = useState<string | null>(null);
+  const [emailSaved, setEmailSaved] = useState<string | null>(null);
+  const [savingField, setSavingField] = useState<ActiveInput>(null);
+  const [ficheError, setFicheError] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialog>(null);
+  const [confirmSaving, setConfirmSaving] = useState(false);
+
+  const fetchGarages = useCallback(
+    async (options: { reset: boolean }) => {
+      if (options.reset) {
+        setLoadingList(true);
+        setListError(null);
+      } else {
+        setLoadingMore(true);
+      }
+
+      try {
+        const url = buildGaragesUrl({
+          segment: segmentFilter,
+          hideFranchise,
+          cursor: options.reset ? null : nextCursor,
+        });
+        const res = await fetch(url);
+        const data = (await res.json()) as GaragesListResponse & { error?: string };
+
+        if (!res.ok) {
+          throw new Error(data.error || "Erreur lors du chargement");
+        }
+
+        setGarages((prev) => (options.reset ? data.garages : [...prev, ...data.garages]));
+        setHasMore(data.hasMore);
+        setNextCursor(data.nextCursor);
+      } catch (err) {
+        setListError(err instanceof Error ? err.message : "Erreur inconnue");
+      } finally {
+        setLoadingList(false);
+        setLoadingMore(false);
+      }
+    },
+    [segmentFilter, hideFranchise, nextCursor]
+  );
+
+  // Chargement initial + rechargement quand les filtres changent
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- déclenche un fetch async, le setState réel a lieu après l'await
+    fetchGarages({ reset: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [segmentFilter, hideFranchise]);
+
+  function openGarage(garage: Garage) {
+    setSelectedGarage(garage);
+    setCopied(false);
+    setActiveInput(null);
+    setTelValue("");
+    setEmailValue("");
+    setTelSaved(null);
+    setEmailSaved(null);
+    setSavingField(null);
+    setFicheError(null);
+    setConfirmDialog(null);
+    setView("fiche");
+  }
+
+  function returnToList() {
+    setView("liste");
+    setSelectedGarage(null);
+    fetchGarages({ reset: true });
+  }
+
+  async function handleCopy() {
+    if (!selectedGarage) return;
+    const text = `${selectedGarage.nom} ${selectedGarage.commune}`.trim();
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // presse-papier indisponible, on ignore silencieusement
+    }
+  }
+
+  async function patchGarage(id: string, body: Record<string, unknown>) {
+    const res = await fetch(`/api/garages/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || "Erreur lors de la mise à jour");
+    }
+    return data;
+  }
+
+  async function handleValiderTel() {
+    if (!selectedGarage || !telValue.trim()) return;
+    setSavingField("tel");
+    setFicheError(null);
+    try {
+      await patchGarage(selectedGarage.id, { telephone: telValue.trim() });
+      setTelSaved(telValue.trim());
+      setActiveInput(null);
+    } catch (err) {
+      setFicheError(err instanceof Error ? err.message : "Erreur inconnue");
+    } finally {
+      setSavingField(null);
+    }
+  }
+
+  async function handleValiderEmail() {
+    if (!selectedGarage || !emailValue.trim()) return;
+    setSavingField("email");
+    setFicheError(null);
+    try {
+      await patchGarage(selectedGarage.id, { email: emailValue.trim() });
+      setEmailSaved(emailValue.trim());
+      setActiveInput(null);
+    } catch (err) {
+      setFicheError(err instanceof Error ? err.message : "Erreur inconnue");
+    } finally {
+      setSavingField(null);
+    }
+  }
+
+  function handleRetourListe() {
+    if (telSaved === null && emailSaved === null) {
+      returnToList();
+      return;
+    }
+    if (telSaved !== null && emailSaved === null) {
+      setConfirmDialog("email");
+      return;
+    }
+    if (emailSaved !== null && telSaved === null) {
+      setConfirmDialog("tel");
+      return;
+    }
+    // Les deux ont été saisis
+    returnToList();
+  }
+
+  async function handleConfirmOui() {
+    if (!selectedGarage || !confirmDialog) return;
+    setConfirmSaving(true);
+    try {
+      if (confirmDialog === "email") {
+        await patchGarage(selectedGarage.id, { email_non_trouve: true });
+      } else {
+        await patchGarage(selectedGarage.id, { tel_non_trouve: true });
+      }
+    } catch (err) {
+      setFicheError(err instanceof Error ? err.message : "Erreur inconnue");
+    } finally {
+      setConfirmSaving(false);
+      setConfirmDialog(null);
+      returnToList();
+    }
+  }
+
+  function handleConfirmNon() {
+    setConfirmDialog(null);
+    returnToList();
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
+      {view === "liste" ? (
+        <ListeView
+          segmentFilter={segmentFilter}
+          setSegmentFilter={setSegmentFilter}
+          hideFranchise={hideFranchise}
+          setHideFranchise={setHideFranchise}
+          garages={garages}
+          loadingList={loadingList}
+          loadingMore={loadingMore}
+          listError={listError}
+          hasMore={hasMore}
+          onLoadMore={() => fetchGarages({ reset: false })}
+          onSelect={openGarage}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      ) : (
+        selectedGarage && (
+          <FicheView
+            garage={selectedGarage}
+            copied={copied}
+            onCopy={handleCopy}
+            activeInput={activeInput}
+            setActiveInput={setActiveInput}
+            telValue={telValue}
+            setTelValue={setTelValue}
+            emailValue={emailValue}
+            setEmailValue={setEmailValue}
+            telSaved={telSaved}
+            emailSaved={emailSaved}
+            savingField={savingField}
+            ficheError={ficheError}
+            onValiderTel={handleValiderTel}
+            onValiderEmail={handleValiderEmail}
+            onRetourListe={handleRetourListe}
+          />
+        )
+      )}
+
+      {confirmDialog && (
+        <ConfirmModal
+          question={confirmDialog === "email" ? "Email trouvé ?" : "Téléphone trouvé ?"}
+          saving={confirmSaving}
+          onOui={handleConfirmOui}
+          onNon={handleConfirmNon}
+        />
+      )}
+    </div>
+  );
+}
+
+function ListeView({
+  segmentFilter,
+  setSegmentFilter,
+  hideFranchise,
+  setHideFranchise,
+  garages,
+  loadingList,
+  loadingMore,
+  listError,
+  hasMore,
+  onLoadMore,
+  onSelect,
+}: {
+  segmentFilter: SegmentFilter;
+  setSegmentFilter: (s: SegmentFilter) => void;
+  hideFranchise: boolean;
+  setHideFranchise: (v: boolean) => void;
+  garages: Garage[];
+  loadingList: boolean;
+  loadingMore: boolean;
+  listError: string | null;
+  hasMore: boolean;
+  onLoadMore: () => void;
+  onSelect: (g: Garage) => void;
+}) {
+  return (
+    <div className="flex flex-1 flex-col px-4 pb-8 pt-6">
+      <header className="mb-4">
+        <h1 className="text-xl font-bold text-primary">Goparo Prospection</h1>
+        <p className="text-sm text-neutral-500">Garages sans téléphone ni email</p>
+      </header>
+
+      <div className="mb-4 flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-3 shadow-sm">
+        <label className="flex flex-col gap-1 text-sm font-medium text-neutral-700">
+          Segment
+          <select
+            value={segmentFilter}
+            onChange={(e) => setSegmentFilter(e.target.value as SegmentFilter)}
+            className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+            {(Object.keys(SEGMENT_LABELS) as SegmentFilter[]).map((key) => (
+              <option key={key} value={key}>
+                {SEGMENT_LABELS[key]}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="flex items-center justify-between text-sm font-medium text-neutral-700">
+          Masquer franchises suspectées
+          <button
+            type="button"
+            role="switch"
+            aria-checked={hideFranchise}
+            onClick={() => setHideFranchise(!hideFranchise)}
+            className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+              hideFranchise ? "bg-primary" : "bg-neutral-300"
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                hideFranchise ? "translate-x-5" : "translate-x-0.5"
+              }`}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </button>
+        </label>
+      </div>
+
+      {listError && (
+        <p className="mb-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">{listError}</p>
+      )}
+
+      {loadingList ? (
+        <div className="flex flex-1 items-center justify-center py-12 text-neutral-400">
+          <Loader2 className="h-6 w-6 animate-spin" />
         </div>
-      </main>
+      ) : garages.length === 0 ? (
+        <p className="py-12 text-center text-sm text-neutral-400">Aucun garage à traiter.</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {garages.map((garage) => (
+            <li key={garage.id}>
+              <button
+                type="button"
+                onClick={() => onSelect(garage)}
+                className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-left shadow-sm transition active:scale-[0.99] active:bg-neutral-50"
+              >
+                <p className="font-semibold text-neutral-900">{garage.nom || "(sans nom)"}</p>
+                <p className="text-sm text-neutral-500">{garage.commune}</p>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {hasMore && !loadingList && (
+        <button
+          type="button"
+          onClick={onLoadMore}
+          disabled={loadingMore}
+          className="mt-4 flex items-center justify-center gap-2 rounded-lg border border-primary px-4 py-2.5 text-sm font-medium text-primary transition active:scale-[0.99] disabled:opacity-60"
+        >
+          {loadingMore && <Loader2 className="h-4 w-4 animate-spin" />}
+          Charger plus
+        </button>
+      )}
+    </div>
+  );
+}
+
+function FicheView({
+  garage,
+  copied,
+  onCopy,
+  activeInput,
+  setActiveInput,
+  telValue,
+  setTelValue,
+  emailValue,
+  setEmailValue,
+  telSaved,
+  emailSaved,
+  savingField,
+  ficheError,
+  onValiderTel,
+  onValiderEmail,
+  onRetourListe,
+}: {
+  garage: Garage;
+  copied: boolean;
+  onCopy: () => void;
+  activeInput: ActiveInput;
+  setActiveInput: (v: ActiveInput) => void;
+  telValue: string;
+  setTelValue: (v: string) => void;
+  emailValue: string;
+  setEmailValue: (v: string) => void;
+  telSaved: string | null;
+  emailSaved: string | null;
+  savingField: ActiveInput;
+  ficheError: string | null;
+  onValiderTel: () => void;
+  onValiderEmail: () => void;
+  onRetourListe: () => void;
+}) {
+  return (
+    <div className="flex flex-1 flex-col px-4 pb-8 pt-6">
+      <button
+        type="button"
+        onClick={onRetourListe}
+        className="mb-4 flex w-fit items-center gap-1 text-sm font-medium text-neutral-500"
+      >
+        <ChevronLeft className="h-4 w-4" />
+        Liste
+      </button>
+
+      <div className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
+        <div className="mb-3 flex items-start justify-between gap-2">
+          <h2 className="text-lg font-bold text-neutral-900">{garage.nom || "(sans nom)"}</h2>
+          <button
+            type="button"
+            onClick={onCopy}
+            aria-label="Copier nom et commune"
+            className="shrink-0 rounded-md border border-neutral-200 p-2 text-neutral-500 transition active:scale-95"
+          >
+            {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+          </button>
+        </div>
+
+        <dl className="flex flex-col gap-2 text-sm">
+          <div>
+            <dt className="text-neutral-400">Adresse</dt>
+            <dd className="text-neutral-800">{garage.adresse || "—"}</dd>
+          </div>
+          <div>
+            <dt className="text-neutral-400">Commune</dt>
+            <dd className="text-neutral-800">{garage.commune || "—"}</dd>
+          </div>
+          <div>
+            <dt className="text-neutral-400">Dirigeant</dt>
+            <dd className="text-neutral-800">{garage.dirigeant || "—"}</dd>
+          </div>
+        </dl>
+
+        {telSaved && (
+          <p className="mt-3 flex items-center gap-2 rounded-md bg-primary/10 px-3 py-2 text-sm text-primary-dark">
+            <Phone className="h-4 w-4" /> {telSaved}
+          </p>
+        )}
+        {emailSaved && (
+          <p className="mt-2 flex items-center gap-2 rounded-md bg-primary/10 px-3 py-2 text-sm text-primary-dark">
+            <Mail className="h-4 w-4" /> {emailSaved}
+          </p>
+        )}
+      </div>
+
+      {ficheError && (
+        <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">{ficheError}</p>
+      )}
+
+      <div className="mt-4 flex flex-col gap-3">
+        {activeInput === "tel" && (
+          <div className="flex gap-2">
+            <input
+              type="tel"
+              inputMode="tel"
+              autoFocus
+              value={telValue}
+              onChange={(e) => setTelValue(e.target.value)}
+              placeholder="+33 6 12 34 56 78"
+              className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            <button
+              type="button"
+              onClick={onValiderTel}
+              disabled={savingField === "tel" || !telValue.trim()}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition active:scale-[0.98] disabled:opacity-60"
+            >
+              {savingField === "tel" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Valider"}
+            </button>
+          </div>
+        )}
+
+        {activeInput === "email" && (
+          <div className="flex gap-2">
+            <input
+              type="email"
+              inputMode="email"
+              autoFocus
+              value={emailValue}
+              onChange={(e) => setEmailValue(e.target.value)}
+              placeholder="contact@garage.fr"
+              className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            <button
+              type="button"
+              onClick={onValiderEmail}
+              disabled={savingField === "email" || !emailValue.trim()}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition active:scale-[0.98] disabled:opacity-60"
+            >
+              {savingField === "email" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Valider"}
+            </button>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setActiveInput(activeInput === "tel" ? null : "tel")}
+          className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-white transition active:scale-[0.99]"
+        >
+          <Phone className="h-4 w-4" />
+          {telSaved ? "Modifier tél." : "Ajouter tél."}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveInput(activeInput === "email" ? null : "email")}
+          className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-white transition active:scale-[0.99]"
+        >
+          <Mail className="h-4 w-4" />
+          {emailSaved ? "Modifier email" : "Ajouter email"}
+        </button>
+
+        <button
+          type="button"
+          onClick={onRetourListe}
+          className="flex items-center justify-center gap-2 rounded-lg border border-neutral-300 px-4 py-3 text-sm font-medium text-neutral-700 transition active:scale-[0.99]"
+        >
+          Retour liste
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ConfirmModal({
+  question,
+  saving,
+  onOui,
+  onNon,
+}: {
+  question: string;
+  saving: boolean;
+  onOui: () => void;
+  onNon: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6">
+      <div className="w-full max-w-xs rounded-lg bg-white p-5 shadow-lg">
+        <p className="mb-4 text-center text-base font-medium text-neutral-900">{question}</p>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={onNon}
+            disabled={saving}
+            className="flex-1 rounded-md border border-neutral-300 py-2 text-sm font-medium text-neutral-700 disabled:opacity-60"
+          >
+            Non
+          </button>
+          <button
+            type="button"
+            onClick={onOui}
+            disabled={saving}
+            className="flex flex-1 items-center justify-center gap-2 rounded-md bg-primary py-2 text-sm font-medium text-white disabled:opacity-60"
+          >
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+            Oui
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
