@@ -131,7 +131,7 @@ export default function Home() {
 
   async function handleCopy() {
     if (!selectedGarage) return;
-    const text = `${getNomAffiche(selectedGarage)} ${selectedGarage.commune}`.trim();
+    const text = `Téléphone et email du garage ${getNomAffiche(selectedGarage)} à ${selectedGarage.commune}`.trim();
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
