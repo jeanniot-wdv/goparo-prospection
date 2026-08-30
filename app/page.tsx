@@ -15,12 +15,22 @@ const SEGMENT_LABELS: Record<SegmentFilter, string> = {
   solo_non_employeur: "Solo non employeur",
 };
 
-function buildGaragesUrl(params: { segment: SegmentFilter; hideFranchise: boolean; cursor?: string | null }) {
+function buildGaragesUrl(params: {
+  segment: SegmentFilter;
+  hideFranchise: boolean;
+  enseigneOnly: boolean;
+  cursor?: string | null;
+}) {
   const search = new URLSearchParams();
   if (params.segment !== "all") search.set("segment", params.segment);
   search.set("hideFranchise", String(params.hideFranchise));
+  search.set("enseigneOnly", String(params.enseigneOnly));
   if (params.cursor) search.set("cursor", params.cursor);
   return `/api/garages?${search.toString()}`;
+}
+
+function getNomAffiche(garage: Garage): string {
+  return garage.enseigne && garage.enseigne.trim() !== "" ? garage.enseigne : garage.nom;
 }
 
 export default function Home() {
@@ -29,6 +39,7 @@ export default function Home() {
   // Filtres liste
   const [segmentFilter, setSegmentFilter] = useState<SegmentFilter>("all");
   const [hideFranchise, setHideFranchise] = useState(true);
+  const [enseigneOnly, setEnseigneOnly] = useState(true);
 
   // Données liste
   const [garages, setGarages] = useState<Garage[]>([]);
@@ -66,6 +77,7 @@ export default function Home() {
         const url = buildGaragesUrl({
           segment: segmentFilter,
           hideFranchise,
+          enseigneOnly,
           cursor: options.reset ? null : nextCursor,
         });
         const res = await fetch(url);
@@ -85,7 +97,7 @@ export default function Home() {
         setLoadingMore(false);
       }
     },
-    [segmentFilter, hideFranchise, nextCursor]
+    [segmentFilter, hideFranchise, enseigneOnly, nextCursor]
   );
 
   // Chargement initial + rechargement quand les filtres changent
@@ -93,7 +105,7 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- déclenche un fetch async, le setState réel a lieu après l'await
     fetchGarages({ reset: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [segmentFilter, hideFranchise]);
+  }, [segmentFilter, hideFranchise, enseigneOnly]);
 
   function openGarage(garage: Garage) {
     setSelectedGarage(garage);
@@ -119,7 +131,7 @@ export default function Home() {
 
   async function handleCopy() {
     if (!selectedGarage) return;
-    const text = `${selectedGarage.nom} ${selectedGarage.commune}`.trim();
+    const text = `${getNomAffiche(selectedGarage)} ${selectedGarage.commune}`.trim();
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
@@ -253,6 +265,8 @@ export default function Home() {
           setSegmentFilter={setSegmentFilter}
           hideFranchise={hideFranchise}
           setHideFranchise={setHideFranchise}
+          enseigneOnly={enseigneOnly}
+          setEnseigneOnly={setEnseigneOnly}
           garages={garages}
           loadingList={loadingList}
           loadingMore={loadingMore}
@@ -314,6 +328,8 @@ function ListeView({
   setSegmentFilter,
   hideFranchise,
   setHideFranchise,
+  enseigneOnly,
+  setEnseigneOnly,
   garages,
   loadingList,
   loadingMore,
@@ -326,6 +342,8 @@ function ListeView({
   setSegmentFilter: (s: SegmentFilter) => void;
   hideFranchise: boolean;
   setHideFranchise: (v: boolean) => void;
+  enseigneOnly: boolean;
+  setEnseigneOnly: (v: boolean) => void;
   garages: Garage[];
   loadingList: boolean;
   loadingMore: boolean;
@@ -375,6 +393,25 @@ function ListeView({
             />
           </button>
         </label>
+
+        <label className="flex items-center justify-between text-sm font-medium text-neutral-700">
+          Enseigne uniquement
+          <button
+            type="button"
+            role="switch"
+            aria-checked={enseigneOnly}
+            onClick={() => setEnseigneOnly(!enseigneOnly)}
+            className={`inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+              enseigneOnly ? "bg-primary" : "bg-neutral-300"
+            }`}
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                enseigneOnly ? "translate-x-[22px]" : "translate-x-0.5"
+              }`}
+            />
+          </button>
+        </label>
       </div>
 
       {listError && (
@@ -396,7 +433,7 @@ function ListeView({
                 onClick={() => onSelect(garage)}
                 className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-left shadow-sm transition active:scale-[0.99] active:bg-neutral-50"
               >
-                <p className="font-semibold text-neutral-900">{garage.nom || "(sans nom)"}</p>
+                <p className="font-semibold text-neutral-900">{getNomAffiche(garage) || "(sans nom)"}</p>
                 <p className="text-sm text-neutral-500">{garage.commune}</p>
               </button>
             </li>
@@ -468,16 +505,22 @@ function FicheView({
       </button>
 
       <div className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
-        <div className="mb-3 flex items-start justify-between gap-2">
-          <h2 className="text-lg font-bold text-neutral-900">{garage.nom || "(sans nom)"}</h2>
-          <button
-            type="button"
-            onClick={onCopy}
-            aria-label="Copier nom et commune"
-            className="shrink-0 rounded-md border border-neutral-200 p-2 text-neutral-500 transition active:scale-95"
-          >
-            {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
-          </button>
+        <div className="mb-3">
+          <div className="flex items-start justify-between gap-2">
+            <h2 className="text-lg font-bold text-neutral-900">{getNomAffiche(garage) || "(sans nom)"}</h2>
+            <button
+              type="button"
+              onClick={onCopy}
+              aria-label="Copier nom et commune"
+              className="shrink-0 rounded-md border border-neutral-200 p-2 text-neutral-500 transition active:scale-95"
+            >
+              {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+            </button>
+          </div>
+
+          {garage.enseigne.trim() !== "" && (
+            <p className="mt-0.5 text-xs text-neutral-400">Nom légal : {garage.nom}</p>
+          )}
         </div>
 
         <dl className="flex flex-col gap-2 text-sm">

@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const segment = searchParams.get("segment") as Segment | null;
   const hideFranchise = searchParams.get("hideFranchise") !== "false"; // default true
+  const enseigneOnly = searchParams.get("enseigneOnly") === "true";
   const cursor = searchParams.get("cursor");
 
   const filter: Record<string, unknown> = {
@@ -25,8 +26,13 @@ export async function GET(request: NextRequest) {
     andConditions.push({ property: "franchise_suspectee", select: { does_not_equal: "oui" } });
   }
 
+  if (enseigneOnly) {
+    andConditions.push({ property: "enseigne", rich_text: { is_not_empty: true } });
+  }
+
   const body: Record<string, unknown> = {
     filter,
+    sorts: [{ property: "enseigne", direction: "descending" }],
     page_size: 20,
   };
   if (cursor) {

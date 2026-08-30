@@ -4,6 +4,7 @@ export type FranchiseSuspectee = "oui" | "non";
 export interface Garage {
   id: string;
   nom: string;
+  enseigne: string;
   adresse: string;
   commune: string;
   cp: number | null;

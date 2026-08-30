@@ -50,6 +50,7 @@ export function mapPageToGarage(page: NotionPage): Garage {
   return {
     id: page.id,
     nom: plainText(props["Nom"]),
+    enseigne: plainText(props["enseigne"]),
     adresse: plainText(props["adresse"]),
     commune: plainText(props["commune"]),
     cp: props["CP"]?.type === "number" ? props["CP"].number : null,
