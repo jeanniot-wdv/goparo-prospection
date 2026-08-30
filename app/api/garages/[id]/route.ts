@@ -50,3 +50,27 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
+// Archive la page côté Notion (in_trash: true). L'API Notion ne permet pas de
+// suppression définitive — la page reste récupérable depuis la corbeille pendant 30 jours.
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+
+  try {
+    const response = await fetch(`${NOTION_API_BASE}/pages/${id}`, {
+      method: "PATCH",
+      headers: notionHeaders(),
+      body: JSON.stringify({ in_trash: true }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return NextResponse.json({ error: `Notion API error: ${errorText}` }, { status: response.status });
+    }
+
+    return NextResponse.json({ ok: true }, { status: 200 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}

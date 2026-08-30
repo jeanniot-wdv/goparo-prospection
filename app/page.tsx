@@ -50,6 +50,8 @@ export default function Home() {
   const [ficheError, setFicheError] = useState<string | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialog>(null);
   const [confirmSaving, setConfirmSaving] = useState(false);
+  const [showFermerModal, setShowFermerModal] = useState(false);
+  const [fermerSaving, setFermerSaving] = useState(false);
 
   const fetchGarages = useCallback(
     async (options: { reset: boolean }) => {
@@ -104,6 +106,8 @@ export default function Home() {
     setSavingField(null);
     setFicheError(null);
     setConfirmDialog(null);
+    setShowFermerModal(false);
+    setFermerSaving(false);
     setView("fiche");
   }
 
@@ -208,6 +212,39 @@ export default function Home() {
     returnToList();
   }
 
+  async function deleteGarage(id: string) {
+    const res = await fetch(`/api/garages/${id}`, { method: "DELETE" });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || "Erreur lors de l'archivage");
+    }
+    return data;
+  }
+
+  function handleFermerClick() {
+    setShowFermerModal(true);
+  }
+
+  function handleFermerAnnuler() {
+    setShowFermerModal(false);
+  }
+
+  async function handleFermerConfirmer() {
+    if (!selectedGarage) return;
+    setFermerSaving(true);
+    setFicheError(null);
+    try {
+      await deleteGarage(selectedGarage.id);
+      setShowFermerModal(false);
+      returnToList();
+    } catch (err) {
+      setFicheError(err instanceof Error ? err.message : "Erreur inconnue");
+      setShowFermerModal(false);
+    } finally {
+      setFermerSaving(false);
+    }
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
       {view === "liste" ? (
@@ -243,6 +280,7 @@ export default function Home() {
             onValiderTel={handleValiderTel}
             onValiderEmail={handleValiderEmail}
             onRetourListe={handleRetourListe}
+            onFermerClick={handleFermerClick}
           />
         )
       )}
@@ -253,6 +291,18 @@ export default function Home() {
           saving={confirmSaving}
           onOui={handleConfirmOui}
           onNon={handleConfirmNon}
+        />
+      )}
+
+      {showFermerModal && (
+        <ConfirmModal
+          question="Confirmer : ce garage est fermé définitivement ? Il sera retiré de la liste (récupérable dans la corbeille Notion pendant 30 jours)."
+          saving={fermerSaving}
+          onOui={handleFermerConfirmer}
+          onNon={handleFermerAnnuler}
+          labelOui="Confirmer"
+          labelNon="Annuler"
+          danger
         />
       )}
     </div>
@@ -386,6 +436,7 @@ function FicheView({
   onValiderTel,
   onValiderEmail,
   onRetourListe,
+  onFermerClick,
 }: {
   garage: Garage;
   copied: boolean;
@@ -403,6 +454,7 @@ function FicheView({
   onValiderTel: () => void;
   onValiderEmail: () => void;
   onRetourListe: () => void;
+  onFermerClick: () => void;
 }) {
   return (
     <div className="flex flex-1 flex-col px-4 pb-8 pt-6">
@@ -529,6 +581,16 @@ function FicheView({
         >
           Retour liste
         </button>
+
+        <div className="mt-2 border-t border-neutral-200 pt-3 text-center">
+          <button
+            type="button"
+            onClick={onFermerClick}
+            className="text-xs font-medium text-red-600 underline-offset-2 active:underline"
+          >
+            Fermé définitivement
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -539,11 +601,17 @@ function ConfirmModal({
   saving,
   onOui,
   onNon,
+  labelOui = "Oui",
+  labelNon = "Non",
+  danger = false,
 }: {
   question: string;
   saving: boolean;
   onOui: () => void;
   onNon: () => void;
+  labelOui?: string;
+  labelNon?: string;
+  danger?: boolean;
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6">
@@ -556,16 +624,18 @@ function ConfirmModal({
             disabled={saving}
             className="flex-1 rounded-md border border-neutral-300 py-2 text-sm font-medium text-neutral-700 disabled:opacity-60"
           >
-            Non
+            {labelNon}
           </button>
           <button
             type="button"
             onClick={onOui}
             disabled={saving}
-            className="flex flex-1 items-center justify-center gap-2 rounded-md bg-primary py-2 text-sm font-medium text-white disabled:opacity-60"
+            className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium text-white transition disabled:opacity-60 ${
+              danger ? "bg-red-600" : "bg-primary"
+            }`}
           >
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-            Oui
+            {labelOui}
           </button>
         </div>
       </div>
