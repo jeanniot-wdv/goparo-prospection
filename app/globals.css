@@ -109,23 +109,23 @@
 }
 
 /* Filet d'encre 1,5 px, l'unique épaisseur de trait du système. */
-@utility border-trait {
+@utility trait {
   border-width: 1.5px;
   border-style: solid;
 }
-@utility border-t-trait {
+@utility trait-t {
   border-top-width: 1.5px;
   border-top-style: solid;
 }
-@utility border-b-trait {
+@utility trait-b {
   border-bottom-width: 1.5px;
   border-bottom-style: solid;
 }
-@utility border-l-trait {
+@utility trait-l {
   border-left-width: 1.5px;
   border-left-style: solid;
 }
-@utility border-r-trait {
+@utility trait-r {
   border-right-width: 1.5px;
   border-right-style: solid;
 }
