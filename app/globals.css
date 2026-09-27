@@ -252,3 +252,10 @@
   --sidebar-border: #151515;
   --sidebar-ring: #ff4f1a;
 }
+
+/* Pas de raccourcis clavier affichés sur écran tactile. */
+@media (hover: none) {
+  [data-slot="kbd"] {
+    display: none;
+  }
+}

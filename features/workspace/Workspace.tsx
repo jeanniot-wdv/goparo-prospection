@@ -2,16 +2,18 @@
 
 import Link from "next/link";
 import { ChevronLeftIcon } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Queue } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { QueueFiltersPanel, QueueFiltersPills, QueueSearch } from "@/features/queue/QueueFilters";
 import { QueueList } from "@/features/queue/QueueList";
-import { ticketNumber } from "@/features/queue/QueueRow";
 import { useGarageQueue } from "@/features/queue/useGarageQueue";
-import { TicketHeader } from "@/features/ticket/TicketHeader";
+import { Ticket, type TicketHandle } from "@/features/ticket/Ticket";
+import { usePendingCommits } from "@/features/ticket/usePendingCommits";
+import type { ExitKind } from "@/lib/domain/prospection-rules";
+import type { UpdateGaragePayload } from "@/lib/types";
 import { useIsDesktop } from "./useMediaQuery";
 
 function Logo() {
@@ -37,6 +39,25 @@ export function Workspace() {
   const index = selectedIndex >= 0 ? selectedIndex : isDesktop && queue.garages.length > 0 ? 0 : -1;
   const garage = index >= 0 ? queue.garages[index] : null;
   const ticketOpen = garage !== null && (isDesktop || selectedIndex >= 0);
+  const ticketRef = useRef<TicketHandle | null>(null);
+
+  const pending = usePendingCommits({
+    operator: null,
+    onRestore: (entry) => {
+      queue.restore(entry.garage, entry.index);
+      setSelectedId(entry.garage.id);
+    },
+  });
+
+  // Sortie d'un ticket : écriture différée (annulable), la fiche quitte la file
+  // tout de suite et on enchaîne sur la suivante.
+  const handleExit = (kind: ExitKind, payload: UpdateGaragePayload | null) => {
+    if (!garage) return;
+    const next = queue.garages[index + 1] ?? queue.garages[index - 1] ?? null;
+    pending.schedule({ garage, index, kind, payload });
+    if (kind !== "passer") queue.remove(garage.id);
+    setSelectedId(next?.id ?? null);
+  };
 
   return (
     <div className="grid h-dvh grid-cols-[minmax(0,1fr)] overflow-hidden lg:grid-cols-[200px_minmax(0,1fr)_minmax(0,1.3fr)]">
@@ -89,19 +110,20 @@ export function Workspace() {
         aria-label="Ticket"
       >
         {garage ? (
-          <article className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-5 lg:px-10 lg:py-8">
-            <TicketHeader
-              garage={garage}
-              number={ticketNumber(index)}
-              toolbar={
-                !isDesktop && (
-                  <Button variant="ghost" size="sm" onClick={() => setSelectedId(null)}>
-                    <ChevronLeftIcon /> Liste
-                  </Button>
-                )
-              }
-            />
-          </article>
+          <Ticket
+            key={garage.id}
+            garage={garage}
+            number={queue.numberOf(garage.id)}
+            onExit={handleExit}
+            handleRef={ticketRef}
+            toolbar={
+              !isDesktop && (
+                <Button variant="ghost" size="sm" onClick={() => setSelectedId(null)}>
+                  <ChevronLeftIcon /> Liste
+                </Button>
+              )
+            }
+          />
         ) : (
           <div className="hachures flex h-full items-center justify-center p-10">
             <p className="font-expanded text-xl font-black text-mute uppercase">

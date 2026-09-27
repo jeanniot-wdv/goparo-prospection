@@ -24,6 +24,9 @@ export function useGarageQueue() {
   // Ids retirés localement (écriture en attente) : ignorés s'ils reviennent d'une page suivante.
   const hidden = useRef(new Set<string>());
   const controller = useRef<AbortController | null>(null);
+  // N° de ticket stable : attribué à l'arrivée dans la file, ne bouge plus quand
+  // une fiche en sort. Remis à zéro quand les filtres changent.
+  const numbers = useRef(new Map<string, number>());
 
   const load = useCallback(async (p: QueueParams, cursor: string | null) => {
     controller.current?.abort();
@@ -33,6 +36,10 @@ export function useGarageQueue() {
     try {
       const data = await fetchQueue(p, cursor, ctrl.signal);
       const fresh = data.garages.filter((g) => !hidden.current.has(g.id));
+      if (!cursor) numbers.current = new Map();
+      for (const g of fresh) {
+        if (!numbers.current.has(g.id)) numbers.current.set(g.id, numbers.current.size + 1);
+      }
       setState((s) => {
         const known = cursor ? new Set(s.garages.map((g) => g.id)) : new Set<string>();
         return {
@@ -85,7 +92,9 @@ export function useGarageQueue() {
     });
   }, []);
 
-  return { params, updateParams, ...state, loadMore, reload, remove, restore };
+  const numberOf = useCallback((id: string) => String(numbers.current.get(id) ?? 0).padStart(4, "0"), []);
+
+  return { params, updateParams, ...state, loadMore, reload, remove, restore, numberOf };
 }
 
 export type GarageQueue = ReturnType<typeof useGarageQueue>;

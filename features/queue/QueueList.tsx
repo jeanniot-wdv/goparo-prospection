@@ -74,11 +74,11 @@ export function QueueList({
         </div>
       ) : (
         <ol>
-          {queue.garages.map((garage, index) => (
+          {queue.garages.map((garage) => (
             <li key={garage.id} data-garage-id={garage.id}>
               <QueueRow
                 garage={garage}
-                index={index}
+                number={queue.numberOf(garage.id)}
                 active={garage.id === selectedId}
                 onSelect={() => onSelect(garage.id)}
               />

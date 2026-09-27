@@ -36,7 +36,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="fr" className={cn("h-full antialiased", archivo.variable, geistMono.variable)}>
       <body className="h-full bg-ciment text-encre">
         <TooltipProvider delayDuration={400}>{children}</TooltipProvider>
-        <Toaster position="bottom-center" />
+        <Toaster
+          position="bottom-center"
+          offset={{ bottom: 88 }}
+          mobileOffset={{ bottom: 96 }}
+          toastOptions={{
+            classNames: {
+              toast: "cn-toast !border-encre !bg-encre !text-papier !font-sans",
+              description: "!text-papier/70",
+              actionButton: "!rounded-none !bg-signal !font-semibold !text-encre",
+            },
+          }}
+        />
       </body>
     </html>
   );

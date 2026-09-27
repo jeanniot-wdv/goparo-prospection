@@ -2,11 +2,6 @@ import { cn } from "@/lib/utils";
 import { getNomAffiche } from "@/lib/domain/search-links";
 import type { Garage } from "@/lib/types";
 
-// Numéro de ticket : position dans la file, sur 4 chiffres.
-export function ticketNumber(index: number) {
-  return String(index + 1).padStart(4, "0");
-}
-
 // Jauge 3 segments : tél. / email / site. Plein bleu Goparo = donnée connue.
 export function Gauge({ garage, className }: { garage: Garage; className?: string }) {
   const parts = [
@@ -28,13 +23,13 @@ export function Gauge({ garage, className }: { garage: Garage; className?: strin
 
 export function QueueRow({
   garage,
-  index,
+  number,
   active,
   leaving,
   onSelect,
 }: {
   garage: Garage;
-  index: number;
+  number: string;
   active: boolean;
   leaving?: boolean;
   onSelect: () => void;
@@ -55,7 +50,7 @@ export function QueueRow({
         className={cn("absolute inset-y-0 left-0 w-[3px] bg-signal transition-transform origin-left", active ? "scale-x-100" : "scale-x-0")}
       />
       <span className={cn("font-mono text-[11px] tabular-nums", active ? "text-encre" : "text-mute")}>
-        {ticketNumber(index)}
+        {number}
       </span>
       <span className="min-w-0">
         <span className="block truncate font-condensed text-[15px] leading-tight font-extrabold uppercase">
