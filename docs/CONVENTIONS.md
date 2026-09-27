@@ -1,0 +1,49 @@
+# Conventions
+
+## Langue
+- **Français** dans l'UI, les commentaires, les messages de commit et la doc.
+- Identifiants de code en anglais ou en français selon le domaine : le vocabulaire métier
+  reste en français (`fiche`, `saisie`, `traite_le`, `aCompleter`), la plomberie en anglais
+  (`queryAll`, `usePendingCommits`).
+
+## Structure
+- `app/` : routes uniquement, fines. Pas de logique métier dans une route ou une page.
+- `features/<domaine>/` : composants client et hooks d'un domaine (`queue`, `ticket`…).
+  Un hook par fichier, nommé `useX.ts` ; un composant par fichier, en PascalCase.
+- `lib/domain/` : fonctions **pures** (pas de `fetch`, pas de React). Tout ce qui décide
+  d'une règle métier vit ici et est testé.
+- `lib/notion/` : seul endroit qui connaît l'API Notion. Les noms de propriétés viennent
+  **toujours** de `schema.ts` (`PROPS.telephone`, jamais `"telephone"` en dur).
+- `lib/api/garages-client.ts` : seul endroit qui appelle `/api/*` depuis le navigateur.
+- `components/ui/` : composants shadcn. On les ajoute avec `npx shadcn@latest add <nom>`
+  et on préfère les réutiliser plutôt qu'écrire un composant maison.
+
+## Règles Notion
+- Ne jamais écrire dans Notion (script, test manuel, test auto) sans accord explicite.
+  Les tests de bout en bout interceptent `PATCH`/`DELETE /api/garages/{id}`.
+- La sémantique des sorties est centralisée dans `lib/domain/prospection-rules.ts`.
+  « Oui, je le saisis » = rester sur la fiche ; seul « Non » ferme le cas.
+- Filtres : 2 niveaux d'imbrication maximum (`and` racine + un `or`).
+- Toute nouvelle propriété : ajout dans `schema.ts`, `mapper.ts` (+ test), et si l'app
+  la crée, dans `scripts/notion-migrate.mjs` (idempotent, dry-run par défaut).
+
+## Next 16
+- Lire `node_modules/next/dist/docs/` avant d'utiliser une API Next (cf. `AGENTS.md`).
+- `revalidateTag(tag, 'max')` : 2 arguments obligatoires.
+- Une route ou page qui interroge Notion au rendu doit être dynamique
+  (`export const dynamic = "force-dynamic"` ou `await connection()`).
+
+## Style
+- Tailwind 4 : tokens dans `app/globals.css` (`@theme`). Pas de couleur en dur dans les
+  composants, sauf dans les SVG statiques (icône).
+- Filets : utilitaires `trait`, `trait-t|b|l|r` (1,5 px). **Ne pas** les nommer
+  `border-*` : `cn()` les confondrait avec une couleur de bordure et les supprimerait.
+- Pas d'ombres portées, pas d'arrondis (sauf les pastilles de filtre mobiles).
+
+## Tests
+- Vitest (`npm test`), limité à la logique pure : `lib/**/*.test.ts`,
+  `features/**/use*.test.ts` pour les reducers, `scripts/*.test.ts`.
+- Un test par règle métier ; les cas « Oui/Non » des sorties sont couverts dans
+  `prospection-rules.test.ts`.
+- Avant un commit : `npm run lint`, `npm run typecheck`, `npm test`, et `npm run build`
+  si des routes ont changé.

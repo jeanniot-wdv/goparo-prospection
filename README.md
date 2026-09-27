@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Goparo Prospection
 
-## Getting Started
+Outil interne pour compléter à la main les coordonnées (téléphone, email, site) des garages
+de la base Notion « Grand Est » (≈ 4 200 fiches). Chaque garage est un ticket : on cherche,
+on saisit, on tamponne, on passe au suivant. Une page **Atelier** suit l'avancement de l'équipe.
 
-First, run the development server:
+Next.js 16 · React 19 · Tailwind 4 · shadcn/ui · API Notion. Pas de base de données :
+Notion est la source de vérité.
+
+## Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.local.example .env.local   # puis renseigner les variables
+npm run dev                         # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Variables d'environnement
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Rôle |
+|---|---|
+| `NOTION_API_KEY` | clé d'intégration Notion (lecture + écriture sur la base) |
+| `NOTION_DATA_SOURCE_ID` | identifiant de la data source « Grand Est » (API `2025-09-03`) |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Elles ne sont lues que côté serveur (routes `/api`).
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Commande | Effet |
+|---|---|
+| `npm run dev` | serveur de développement |
+| `npm run build` / `npm start` | build et serveur de production |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript sans émission |
+| `npm test` | tests Vitest (logique pure) |
+| `npm run notion:migrate` | migration du schéma Notion (dry-run) |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Migration Notion
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+L'app a besoin de trois propriétés dans la base : `traite_le` (date), `traite_par`
+(select Hiba / Romain) et `score_priorite` (formule de priorité).
 
-## Deploy on Vercel
+```bash
+npm run notion:migrate              # affiche ce qui manque, n'écrit rien
+npm run notion:migrate -- --apply   # crée les propriétés manquantes
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Le script est idempotent et ne modifie aucune fiche. Il a été appliqué le 2026-09-27.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Déploiement
+
+N'importe quel hébergeur Next.js (Vercel par exemple) : définir les deux variables
+d'environnement, puis `npm run build`. L'app n'a **pas d'authentification** : ne pas
+exposer l'URL publiquement.
+
+## Utilisation
+
+1. Choisir qui est au poste (Hiba ou Romain) : le nom est enregistré avec chaque fiche traitée.
+2. Choisir une file (Nouveaux ou À compléter) et filtrer si besoin.
+3. Sur le ticket : **Lancer la recherche** (C), saisir tél. / email / site (T / E / W),
+   puis **Terminer** (⌘↵), **Rien trouvé** (N), **Passer** (P) ou **Fermé** (appui long).
+4. Chaque sortie peut être annulée pendant 5 s (U).
+
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md) : couches, flux, cache, schéma Notion, files et sorties
+- [Décisions](docs/DECISIONS.md) : les choix et leurs raisons (ADR)
+- [Conventions](docs/CONVENTIONS.md) : structure, règles Notion, tests
+- [Design kit](docs/DESIGN_KIT.md) : tokens, typographie, composants, raccourcis
+- [État actuel](docs/CURRENT_STATE.md) : fait, limites, à venir
