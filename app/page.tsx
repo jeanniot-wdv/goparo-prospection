@@ -19,6 +19,15 @@ const EMAIL_SAISI_PROPS: UpdateGaragePayload = {
   notesIa: "Ajouté manuellement par l'équipe",
 };
 
+// Téléphone saisi seul, email confirmé introuvable.
+const TEL_SEUL_EMAIL_NON_TROUVE_PROPS: UpdateGaragePayload = {
+  emailType: "Inconnu",
+  statutActivite: "inconnu",
+  confiance: "haute",
+  prospectionActive: "À enrichir",
+  notesIa: "Téléphone ajouté manuellement ; email non trouvé",
+};
+
 const SEGMENT_LABELS: Record<SegmentFilter, string> = {
   all: "Tous",
   structure_employeuse: "Structure employeuse",
@@ -258,19 +267,16 @@ export default function Home() {
     returnToList();
   }
 
-  function handleConfirmOui() {
-    // Trouvé : on reste sur la fiche, le temps de le saisir. Pas de patch ni de retour liste.
-    setConfirmDialog(null);
-  }
-
-  async function handleConfirmNon() {
+  async function handleConfirmOui() {
     if (!selectedGarage || !confirmDialog) return;
     setConfirmSaving(true);
     try {
       if (confirmDialog === "email") {
-        await patchGarage(selectedGarage.id, { emailNonTrouve: true, prospectionActive: "À enrichir" });
+        // Téléphone saisi seul, email confirmé introuvable
+        await patchGarage(selectedGarage.id, { emailNonTrouve: true, ...TEL_SEUL_EMAIL_NON_TROUVE_PROPS });
       } else {
-        await patchGarage(selectedGarage.id, { telNonTrouve: true, prospectionActive: "À enrichir" });
+        // Email saisi, téléphone confirmé introuvable
+        await patchGarage(selectedGarage.id, { telNonTrouve: true, ...EMAIL_SAISI_PROPS });
       }
     } catch (err) {
       setFicheError(err instanceof Error ? err.message : "Erreur inconnue");
@@ -279,6 +285,23 @@ export default function Home() {
       setConfirmDialog(null);
       returnToList();
     }
+  }
+
+  async function handleConfirmNon() {
+    const dialog = confirmDialog;
+    setConfirmDialog(null);
+    // Email saisi, téléphone pas encore cherché : le cas email reste à fermer
+    if (dialog === "tel" && selectedGarage) {
+      setConfirmSaving(true);
+      try {
+        await patchGarage(selectedGarage.id, EMAIL_SAISI_PROPS);
+      } catch (err) {
+        setFicheError(err instanceof Error ? err.message : "Erreur inconnue");
+      } finally {
+        setConfirmSaving(false);
+      }
+    }
+    returnToList();
   }
 
   async function deleteGarage(id: string) {
