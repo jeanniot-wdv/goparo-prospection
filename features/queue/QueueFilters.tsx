@@ -119,7 +119,7 @@ function Pill({ pressed, onChange, children }: { pressed: boolean; onChange: (v:
 // Version mobile : une rangée de pastilles défilable horizontalement.
 export function QueueFiltersPills({ params, update }: { params: QueueParams; update: Update }) {
   return (
-    <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+    <div className="-mx-4 flex touch-pan-x gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
       {DEPTS.map((d) => (
         <Pill key={d.value} pressed={params.dept === d.value} onChange={() => update({ dept: d.value })}>
           {d.value === "all" ? "Tous dép." : d.value}
