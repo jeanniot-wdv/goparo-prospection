@@ -35,6 +35,15 @@ export function computePriority(g: Pick<Garage, "segment" | "effectif" | "enseig
 // Score maximum atteignable (3 + 3 + 2 + 1), utilisé pour la jauge de la file.
 export const PRIORITY_MAX = 9;
 
+export type PriorityTier = "haute" | "moyenne" | "basse";
+
+// 3 paliers pour la pastille de priorité dans la file (score de -2 à 9).
+export function priorityTier(score: number): PriorityTier {
+  if (score >= 6) return "haute";
+  if (score >= 1) return "moyenne";
+  return "basse";
+}
+
 // Expression Notion (formules 2.0) équivalente à computePriority.
 export const PRIORITY_FORMULA = [
   `if(prop("segment") == "structure_employeuse", 3, 0)`,

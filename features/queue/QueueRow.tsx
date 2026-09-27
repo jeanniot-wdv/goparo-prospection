@@ -1,6 +1,16 @@
 import { cn } from "@/lib/utils";
+import { priorityTier } from "@/lib/domain/priority";
 import { getNomAffiche } from "@/lib/domain/search-links";
 import type { Garage } from "@/lib/types";
+
+// Ordinal (3 paliers) sur les tons neutres du système : plein encre = haute,
+// voile = moyenne, contour mute = basse. Pas de teinte, pour ne pas entrer en
+// conflit avec le bleu (données trouvées) ni l'orange (action principale).
+const TIER_CLASSES = {
+  haute: "border-encre bg-encre text-papier",
+  moyenne: "border-filet bg-voile text-encre",
+  basse: "border-filet text-mute",
+} as const;
 
 // Jauge 3 segments : tél. / email / site. Plein bleu Goparo = donnée connue.
 export function Gauge({ garage, className }: { garage: Garage; className?: string }) {
@@ -64,7 +74,13 @@ export function QueueRow({
       <span className="flex flex-col items-end gap-1">
         <Gauge garage={garage} />
         {garage.scorePriorite !== null && (
-          <span className="font-mono text-[10px] text-mute" title="Score de priorité">
+          <span
+            className={cn(
+              "trait px-1 font-mono text-[10px] leading-[1.4] tabular-nums",
+              TIER_CLASSES[priorityTier(garage.scorePriorite)],
+            )}
+            title={`Score de priorité : ${garage.scorePriorite} (${priorityTier(garage.scorePriorite)})`}
+          >
             p{garage.scorePriorite}
           </span>
         )}

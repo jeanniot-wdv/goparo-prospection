@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PRIORITY_MAX, computePriority } from "./priority";
+import { PRIORITY_MAX, computePriority, priorityTier } from "./priority";
 
 const base = { segment: null, effectif: null, enseigne: "", dateCreation: null } as const;
 
@@ -24,5 +24,15 @@ describe("computePriority", () => {
   });
   it("enseigne vide (espaces) ne compte pas", () => {
     expect(computePriority({ ...base, enseigne: "  " })).toBe(0);
+  });
+});
+
+describe("priorityTier", () => {
+  it.each([
+    [9, "haute"], [6, "haute"],
+    [5, "moyenne"], [1, "moyenne"],
+    [0, "basse"], [-2, "basse"],
+  ] as const)("%i → %s", (score, tier) => {
+    expect(priorityTier(score)).toBe(tier);
   });
 });
