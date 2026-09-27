@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { NOTION_API_BASE, getDataSourceId, mapPageToGarage, notionHeaders, type NotionPage } from "@/lib/notion";
+import { NotionError, queryDataSource } from "@/lib/notion/client";
+import { mapPageToGarage } from "@/lib/notion/mapper";
 import type { GaragesListResponse, Segment } from "@/lib/types";
 
 export async function GET(request: NextRequest) {
@@ -42,23 +43,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const dataSourceId = getDataSourceId();
-    const response = await fetch(`${NOTION_API_BASE}/data_sources/${dataSourceId}/query`, {
-      method: "POST",
-      headers: notionHeaders(),
-      body: JSON.stringify(body),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      return NextResponse.json({ error: `Notion API error: ${errorText}` }, { status: response.status });
-    }
-
-    const data = (await response.json()) as {
-      results: NotionPage[];
-      has_more: boolean;
-      next_cursor: string | null;
-    };
+    const data = await queryDataSource(body);
 
     const payload: GaragesListResponse = {
       garages: data.results.map(mapPageToGarage),
@@ -68,6 +53,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(payload);
   } catch (error) {
+    if (error instanceof NotionError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }

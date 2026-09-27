@@ -3,30 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { Check, ChevronLeft, Copy, Globe, Loader2, Mail, Phone, SearchX } from "lucide-react";
 import type { Garage, GaragesListResponse, Segment, UpdateGaragePayload } from "@/lib/types";
+import { EMAIL_SAISI_PROPS, TEL_SEUL_EMAIL_NON_TROUVE_PROPS } from "@/lib/domain/prospection-rules";
+import { buildSearchPrompt, getNomAffiche } from "@/lib/domain/search-links";
 
 type View = "liste" | "fiche";
 type SegmentFilter = Segment | "all";
 type ConfirmDialog = "email" | "tel" | null;
 type ActiveInput = "tel" | "email" | "siteWeb" | null;
-
-// Cf. tableau de mise à jour de Prospection_active (point 5 du brief) :
-// un email saisi (seul ou avec tél.) ferme le cas en "À prospecter".
-const EMAIL_SAISI_PROPS: UpdateGaragePayload = {
-  emailType: "Pro",
-  statutActivite: "inconnu",
-  confiance: "haute",
-  prospectionActive: "À prospecter",
-  notesIa: "Ajouté manuellement par l'équipe",
-};
-
-// Téléphone saisi seul, email confirmé introuvable.
-const TEL_SEUL_EMAIL_NON_TROUVE_PROPS: UpdateGaragePayload = {
-  emailType: "Inconnu",
-  statutActivite: "inconnu",
-  confiance: "haute",
-  prospectionActive: "À enrichir",
-  notesIa: "Téléphone ajouté manuellement ; email non trouvé",
-};
 
 const SEGMENT_LABELS: Record<SegmentFilter, string> = {
   all: "Tous",
@@ -46,10 +29,6 @@ function buildGaragesUrl(params: {
   search.set("enseigneOnly", String(params.enseigneOnly));
   if (params.cursor) search.set("cursor", params.cursor);
   return `/api/garages?${search.toString()}`;
-}
-
-function getNomAffiche(garage: Garage): string {
-  return garage.enseigne && garage.enseigne.trim() !== "" ? garage.enseigne : garage.nom;
 }
 
 export default function Home() {
@@ -156,7 +135,7 @@ export default function Home() {
 
   async function handleCopy() {
     if (!selectedGarage) return;
-    const text = `Téléphone et email du garage ${getNomAffiche(selectedGarage)} à ${selectedGarage.commune}. Si l'email n'est pas trouvé directement, vérifie les mentions légales du site du garage s'il en a un.`.trim();
+    const text = buildSearchPrompt(selectedGarage);
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);

@@ -3,7 +3,23 @@ export type FranchiseSuspectee = "oui" | "non";
 export type EmailType = "Pro" | "Personnel" | "Inconnu";
 export type StatutActivite = "actif" | "fermé" | "inconnu";
 export type Confiance = "haute" | "moyenne" | "faible";
-export type ProspectionActive = "À prospecter" | "À enrichir" | "Pas intéressé" | "À vérifier (RGPD)";
+export type ProspectionActive =
+  | "À enrichir"
+  | "À prospecter"
+  | "En cours"
+  | "Intéressé"
+  | "Client"
+  | "Pas intéressé"
+  | "Désabonné"
+  | "À vérifier (RGPD)";
+// Tranche d'effectif INSEE : 00 = 0 salarié, 01 = 1-2, 02 = 3-5, 03 = 6-9, NN = non renseigné.
+export type Effectif = "00" | "01" | "02" | "03" | "NN";
+export type Operator = "Hiba" | "Romain";
+export const OPERATORS: Operator[] = ["Hiba", "Romain"];
+
+// Deux files de travail : fiches jamais traitées, et fiches avec tél. mais sans email.
+export type Queue = "nouveaux" | "a-completer";
+export type Dept = "67" | "57" | "54" | "all";
 
 export interface Garage {
   id: string;
@@ -20,6 +36,16 @@ export interface Garage {
   siteWeb: string | null;
   telNonTrouve: boolean;
   emailNonTrouve: boolean;
+  siren: string | null;
+  effectif: Effectif | null;
+  naf: string | null;
+  dateCreation: string | null;
+  statutActivite: StatutActivite | null;
+  prospectionActive: ProspectionActive | null;
+  notesIa: string;
+  scorePriorite: number | null;
+  traiteLe: string | null;
+  traitePar: Operator | null;
 }
 
 export interface GaragesListResponse {
@@ -39,4 +65,6 @@ export interface UpdateGaragePayload {
   confiance?: Confiance;
   prospectionActive?: ProspectionActive;
   notesIa?: string;
+  // Renseigne traite_le (date du jour, heure de Paris) et traite_par.
+  operator?: Operator;
 }
