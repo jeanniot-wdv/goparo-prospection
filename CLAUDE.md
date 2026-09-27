@@ -25,6 +25,11 @@ Outil interne : compléter à la main les coordonnées des garages de la base No
 - UI : réutiliser les composants shadcn avant d'en écrire un ; demander avant tout choix de
   design ouvert. Filets : `trait*`, jamais `border-trait` (cn() le supprime).
 - Français dans l'UI, les commentaires et les commits.
+- **Avant chaque commit** : si le changement touche l'architecture, une convention, une
+  décision ou l'état du projet, mettre à jour le(s) fichier(s) `docs/*.md` concerné(s) —
+  et `CLAUDE.md` si sa carte ou ses règles changent. La doc décrit le **code**, jamais des
+  chiffres métier (nombre de fiches, taux, dates de la base Notion) : ça évolue en continu
+  et n'a rien à faire ici — ces chiffres se lisent sur `/atelier`.
 
 @docs/ARCHITECTURE.md
 @docs/CONVENTIONS.md

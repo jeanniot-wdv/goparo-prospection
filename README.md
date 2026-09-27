@@ -1,7 +1,7 @@
 # Goparo Prospection
 
 Outil interne pour compléter à la main les coordonnées (téléphone, email, site) des garages
-de la base Notion « Grand Est » (≈ 4 200 fiches). Chaque garage est un ticket : on cherche,
+de la base Notion « Grand Est ». Chaque garage est un ticket : on cherche,
 on saisit, on tamponne, on passe au suivant. Une page **Atelier** suit l'avancement de l'équipe.
 
 Next.js 16 · React 19 · Tailwind 4 · shadcn/ui · API Notion. Pas de base de données :

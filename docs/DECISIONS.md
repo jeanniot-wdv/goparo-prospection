@@ -3,11 +3,11 @@
 Format court : contexte → décision → conséquences. Les plus récentes en bas.
 
 ## 1. Notion reste la source de vérité
-**Contexte** : 4 169 fiches déjà dans Notion, utilisées par le reste de l'équipe.
+**Contexte** : une base Notion existante, déjà utilisée par le reste de l'équipe.
 **Décision** : pas de base de données ni de state manager. L'app lit et écrit Notion via
 l'API ; l'état client tient dans des hooks (`useReducer` pour le ticket).
 **Conséquences** : aucune synchro à maintenir ; les agrégats sont coûteux (l'API ne calcule
-rien, un scan complet prend ≈ 23 s), d'où l'ADR 5.
+rien, un scan complet est coûteux), d'où l'ADR 5.
 
 ## 2. Score de priorité en formule Notion
 **Contexte** : la file est paginée par Notion ; un tri côté client ne verrait que la page chargée.
@@ -19,7 +19,8 @@ formule du script est identique. Modifier le barème = modifier les deux puis re
 (le script ne met pas à jour une formule existante : la modifier dans Notion ou supprimer la propriété).
 
 ## 3. File « À compléter » par `traite_le`, pas par le texte des notes
-**Contexte** : ≈ 186 fiches ont un tél. sans email ; 184 portent la note « email non recherché ».
+**Contexte** : des fiches ont un tél. sans email, avec une note libre du type « email non
+recherché » — trop fragile pour servir de filtre.
 **Décision** : file = tél. non vide · email vide · À enrichir · `traite_le` vide. Toute fiche
 traitée dans l'app reçoit `traite_le` et sort d'elle-même de la file.
 **Conséquences** : pas de dépendance à un texte libre fragile.

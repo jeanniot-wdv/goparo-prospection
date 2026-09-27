@@ -18,7 +18,7 @@ describe("computeStats", () => {
   const garages = [
     garage(), // nouveau
     garage({ cp: 57100 }), // nouveau
-    garage({ telephone: "+33 3 88 00 00 01", prospectionActive: "À enrichir" }), // à compléter, avant suivi
+    garage({ telephone: "+33 3 88 00 00 01", prospectionActive: "À enrichir" }), // à compléter
     garage({ telephone: "03 88 00 00 01", email: "a@b.fr", segment: "structure_employeuse", effectif: "02",
       prospectionActive: "À prospecter", traiteLe: "2026-09-25", traitePar: "Hiba" }),
     garage({ telNonTrouve: true, emailNonTrouve: true, cp: 75001, dirigeant: "",
@@ -28,7 +28,7 @@ describe("computeStats", () => {
   const s = computeStats(garages, "2026-09-26", new Date("2026-09-26T10:00:00Z"));
 
   it("compteurs globaux", () => {
-    expect(s).toMatchObject({ total: 6, traites: 4, restants: 2, aCompleter: 1, avecEmail: 1, avecTel: 3, avantSuivi: 1 });
+    expect(s).toMatchObject({ total: 6, traites: 4, restants: 2, aCompleter: 1, avecEmail: 1, avecTel: 3 });
   });
   it("activité par jour et par personne", () => {
     expect(s.parOperateur).toEqual({ Hiba: 1, Romain: 2 });

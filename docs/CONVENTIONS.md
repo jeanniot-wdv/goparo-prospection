@@ -47,3 +47,11 @@
   `prospection-rules.test.ts`.
 - Avant un commit : `npm run lint`, `npm run typecheck`, `npm test`, et `npm run build`
   si des routes ont changé.
+
+## Documentation
+- Elle décrit le **code** (architecture, décisions, conventions, design), jamais l'état des
+  données métier. Pas de nombre de fiches, taux, date de la base Notion ou autre chiffre
+  qui date à la minute où il est écrit : ça se lit sur `/atelier`, pas dans `docs/`.
+- Avant chaque commit qui touche l'architecture, une décision, une convention ou une
+  fonctionnalité livrée : mettre à jour le fichier `docs/*.md` concerné, et `CLAUDE.md` si
+  sa carte ou ses règles essentielles changent (cf. `CLAUDE.md`).

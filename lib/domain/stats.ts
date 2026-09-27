@@ -43,8 +43,6 @@ export interface Stats {
   aCompleter: number;
   avecEmail: number;
   avecTel: number;
-  // Traités sans traite_le : fiches traitées avant le suivi (première version de l'app).
-  avantSuivi: number;
   parOperateur: Record<Operator, number>;
   parJour: DayActivity[];
   // Fiches par jour d'activité sur les 14 derniers jours (null sans activité récente).
@@ -195,7 +193,6 @@ export function computeStats(garages: Garage[], today: string, now: Date = new D
     aCompleter: garages.filter(isACompleter).length,
     avecEmail: garages.filter((g) => g.email).length,
     avecTel: garages.filter((g) => g.telephone).length,
-    avantSuivi: traites.filter((g) => !g.traiteLe).length,
     parOperateur,
     parJour,
     rythme,

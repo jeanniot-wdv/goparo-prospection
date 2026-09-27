@@ -44,14 +44,21 @@ liste déclenche la page suivante.
 
 **Sortie d'un ticket** :
 1. `Ticket` calcule le PATCH avec `resolveExit(kind, fiche)` et pose le tampon (650 ms).
-2. `Workspace` retire la fiche de la file (optimiste) et passe à la suivante.
+2. `Workspace` passe à la fiche suivante. Elle est retirée de la file (optimiste) pour
+   toute sortie qui la clôt ; **« passer » la laisse en place**, puisqu'elle reste à traiter.
 3. `usePendingCommits` attend **5 s** (toast « Annuler ») puis envoie
    `PATCH /api/garages/{id}` avec `operator` (ou `DELETE` pour « fermé »).
    « Annuler » ne touche pas Notion : la fiche et sa saisie reviennent dans la file.
    Au `pagehide`, tout ce qui attend part immédiatement en `fetch(…, { keepalive: true })`.
 4. La route écrit dans Notion puis appelle `revalidateTag("garages-stats", "max")`.
+5. Une fois l'écriture confirmée (`onSent`), `useGarageQueue.patchLocal` répercute les
+   coordonnées saisies sur la fiche **si elle est restée dans la file** (« passer ») : sans
+   ça, la rouvrir dans la même session montrerait des emplacements vides déjà enregistrés.
+   Volontairement fait après confirmation, pas de façon optimiste, pour rester cohérent
+   avec une annulation dans les 5 s.
 
-**Stats** : `getCachedStats` scanne toute la base (≈ 42 appels, ≈ 23 s) avec
+**Stats** : `getCachedStats` scanne toute la base (un appel par page de 100 fiches,
+coûteux : jusqu'à plusieurs dizaines de secondes) avec
 `filter_properties` limité aux propriétés utiles, agrège avec `computeStats` et met en
 cache **l'objet agrégé seulement** (tag `garages-stats`, `revalidate: 600`). Après une
 écriture, la revalidation est « stale-while-revalidate » : le client ajoute donc les

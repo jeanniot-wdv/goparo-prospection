@@ -9,7 +9,7 @@ parcours mobile au pouce, sur shadcn/ui (Lyra).
 
 **Lot 1**
 - Tri par priorité (formule Notion `score_priorite`).
-- Deux files : Nouveaux, À compléter (≈ 186 fiches tél. sans email).
+- Deux files : Nouveaux, À compléter (tél. connu, email manquant).
 - Filtres département (67 / 57 / 54), segment, franchises, enseigne (désactivé par défaut),
   recherche Nom / enseigne / commune.
 - Liens de recherche (Google, Maps, annuaire-entreprises, PagesJaunes) + « Lancer la
@@ -28,18 +28,14 @@ parcours mobile au pouce, sur shadcn/ui (Lyra).
 - Page `/atelier` : progression par département, taux de réussite par segment et effectif,
   activité par jour et par personne, entonnoir `Prospection_active`, qualité des données.
 
-## Chiffres au 2026-09-27
-4 169 fiches · 409 traitées (toutes « avant suivi ») · 3 760 restantes · 186 à compléter ·
-84 CP hors zone · 9 sans CP · 148 sans dirigeant · 13 numéros en doublon.
-
 ## Limites connues
-- Le scan des stats prend ≈ 23 s à froid : premier affichage de `/atelier` et du bandeau
-  lent toutes les 10 min environ (servi ensuite depuis le cache).
+- Le scan des stats est lent à froid (base entière) : premier affichage de `/atelier` et
+  du bandeau lent toutes les 10 min environ (servi ensuite depuis le cache).
 - Les nombres des onglets de files ignorent les filtres (ce sont des totaux globaux).
 - Une écriture en attente peut être perdue si le navigateur plante dans les 5 s
   (la fiche reste alors dans la file).
-- Les 409 fiches traitées avant le suivi n'ont ni date ni auteur.
-- Rythme et fin estimée restent vides tant qu'aucune fiche n'a de `traite_le`.
+- Rythme et fin estimée restent vides sans activité `traite_le` sur les 14 derniers jours
+  (fenêtre glissante, `RHYTHM_WINDOW_DAYS` dans `lib/domain/stats.ts`).
 - `unstable_cache` est déprécié au profit de `use cache` (Cache Components) en Next 16.
 
 ## À venir (hors périmètre des lots 1-2)

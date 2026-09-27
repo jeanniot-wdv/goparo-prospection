@@ -15,20 +15,16 @@ const jour = (d: string) =>
   new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${d}T12:00:00Z`));
 
 // Fiches traitées par jour et par personne (traite_le / traite_par), 30 derniers jours d'activité.
+// N'inclut que les fiches réellement closes : celles encore « À compléter » (tél. connu,
+// email pas encore trouvé) n'y figurent pas tant qu'elles ne sont pas résolues.
 export function ActivityChart({ stats }: { stats: Stats }) {
   const rows = stats.parJour.slice(-30).map((d) => ({ date: d.date, jour: jour(d.date), total: d.total, ...d.parOperateur }));
-  const subtitle = (
-    <>
-      {nf.format(stats.avantSuivi)} fiches traitées avant la mise en place du suivi sont regroupées sous « avant suivi » et
-      n&apos;apparaissent pas ici.
-    </>
-  );
 
   return (
-    <Panel title="Activité" subtitle={subtitle}>
+    <Panel title="Activité">
       <div className="flex flex-wrap gap-x-6 gap-y-1 font-mono text-[12px]">
         <span>
-          <span className="text-mute">Avant suivi</span> {nf.format(stats.avantSuivi)}
+          <span className="text-mute">À compléter</span> {nf.format(stats.aCompleter)}
         </span>
         {OPERATORS.map((o) => (
           <span key={o}>
