@@ -14,7 +14,7 @@ import { QueueList } from "@/features/queue/QueueList";
 import { useGarageQueue } from "@/features/queue/useGarageQueue";
 import { Ticket, type TicketHandle } from "@/features/ticket/Ticket";
 import { usePendingCommits } from "@/features/ticket/usePendingCommits";
-import type { ExitKind, Saisie } from "@/lib/domain/prospection-rules";
+import { coordonneesFromPayload, type ExitKind, type Saisie } from "@/lib/domain/prospection-rules";
 import type { UpdateGaragePayload } from "@/lib/types";
 import { OperatorGate, OperatorPicker } from "@/features/operator/OperatorPicker";
 import { useOperator } from "@/features/operator/useOperator";
@@ -61,7 +61,12 @@ export function Workspace() {
       const { telephone, email, siteWeb } = entry.payload ?? {};
       setRestored({ id: entry.garage.id, saisie: { telephone, email, siteWeb } });
     },
-    onSent: (entry) => stats.record(entry, operator),
+    onSent: (entry) => {
+      stats.record(entry, operator);
+      // « Passer » ne retire pas la fiche de la file : on répercute l'écriture
+      // confirmée pour que ses emplacements ne semblent pas vides au survol suivant.
+      if (entry.kind === "passer") queue.patchLocal(entry.garage.id, coordonneesFromPayload(entry.payload));
+    },
   });
 
   // Sortie d'un ticket : écriture différée (annulable), la fiche quitte la file

@@ -94,7 +94,14 @@ export function useGarageQueue() {
 
   const numberOf = useCallback((id: string) => String(numbers.current.get(id) ?? 0).padStart(4, "0"), []);
 
-  return { params, updateParams, ...state, loadMore, reload, remove, restore, numberOf };
+  // Répercute une écriture confirmée sur la fiche encore présente dans la file
+  // (cas « Passer » : la fiche n'est pas retirée, mais son contenu a changé).
+  // N'écrit rien avant confirmation, pour rester cohérent avec une annulation.
+  const patchLocal = useCallback((id: string, patch: Partial<Garage>) => {
+    setState((s) => ({ ...s, garages: s.garages.map((g) => (g.id === id ? { ...g, ...patch } : g)) }));
+  }, []);
+
+  return { params, updateParams, ...state, loadMore, reload, remove, restore, patchLocal, numberOf };
 }
 
 export type GarageQueue = ReturnType<typeof useGarageQueue>;

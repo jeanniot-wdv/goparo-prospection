@@ -118,6 +118,17 @@ export function isTracked(kind: ExitKind) {
   return kind !== "passer";
 }
 
+// Coordonnées d'un PATCH confirmé, à répercuter sur la fiche encore présente
+// dans la file (cas « Passer ») pour que ses emplacements reflètent l'écriture.
+export function coordonneesFromPayload(payload: UpdateGaragePayload | null): Saisie {
+  if (!payload) return {};
+  const out: Saisie = {};
+  if (payload.telephone !== undefined) out.telephone = payload.telephone;
+  if (payload.email !== undefined) out.email = payload.email;
+  if (payload.siteWeb !== undefined) out.siteWeb = payload.siteWeb;
+  return out;
+}
+
 export const EXIT_LABELS: Record<ExitKind, string> = {
   complet: "Terminer",
   "email-introuvable": "Email introuvable",

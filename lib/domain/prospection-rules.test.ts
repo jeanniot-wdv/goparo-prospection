@@ -5,6 +5,7 @@ import {
   FERME_PROPS,
   TEL_SEUL_EMAIL_NON_TROUVE_PROPS,
   availableExits,
+  coordonneesFromPayload,
   resolveExit,
   type FicheState,
 } from "./prospection-rules";
@@ -66,5 +67,15 @@ describe("resolveExit", () => {
   });
   it("n'envoie pas le tél. existant", () => {
     expect(resolveExit("complet", { ...vide, telephoneExistant: tel, saisie: { email } })).not.toHaveProperty("telephone");
+  });
+});
+
+describe("coordonneesFromPayload", () => {
+  it("null → objet vide", () => {
+    expect(coordonneesFromPayload(null)).toEqual({});
+  });
+  it("ne garde que tél./email/site présents dans le payload", () => {
+    expect(coordonneesFromPayload({ siteWeb: "https://g.fr", notesIa: "x" })).toEqual({ siteWeb: "https://g.fr" });
+    expect(coordonneesFromPayload(EMAIL_SAISI_PROPS)).toEqual({});
   });
 });
