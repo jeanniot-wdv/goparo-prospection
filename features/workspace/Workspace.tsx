@@ -164,7 +164,7 @@ export function Workspace() {
         className={cn("flex min-h-0 flex-col lg:trait-r lg:border-encre", ticketOpen && !isDesktop && "hidden")}
         aria-label="File de garages"
       >
-        <div className="flex flex-col gap-3 trait-b border-encre px-4 pt-4 pb-3">
+        <div className="flex min-w-0 flex-col gap-3 trait-b border-encre px-4 pt-4 pb-3">
           <div className="flex items-center justify-between gap-3 lg:hidden">
             <Logo />
             <div className="w-36">
@@ -175,8 +175,11 @@ export function Workspace() {
             </Link>
           </div>
           <StatsStrip live={stats.live} error={stats.error} />
-          <Tabs value={queue.params.queue} onValueChange={(v) => queue.updateParams({ queue: v as Queue })}>
-            <TabsList variant="line" className="h-9 w-full justify-start gap-4 p-0">
+          <Tabs value={queue.params.queue} onValueChange={(v) => queue.updateParams({ queue: v as Queue })} className="min-w-0">
+            <TabsList
+              variant="line"
+              className="h-9 w-full min-w-0 justify-start gap-4 overflow-x-auto p-0 [scrollbar-width:none]"
+            >
               {QUEUES.map((q) => (
                 <TabsTrigger
                   key={q.value}
