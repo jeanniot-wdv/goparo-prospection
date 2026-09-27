@@ -13,7 +13,9 @@ parcours mobile au pouce, sur shadcn/ui (Lyra).
 - Filtres département (67 / 57 / 54), segment, franchises, enseigne (désactivé par défaut),
   recherche Nom / enseigne / commune.
 - Liens de recherche (Google, Maps, annuaire-entreprises, PagesJaunes) + « Lancer la
-  recherche » (copie du prompt).
+  recherche IA » (copie le prompt, ouvre Google en mode IA — `udm=50`).
+- Pastille de priorité à 3 paliers dans la file (haute / moyenne / basse), sur les tons
+  neutres du système.
 - Ticket enrichi : SIREN, effectif, création, NAF, dirigeant, nom légal.
 - Mise au format tél. (+33 X XX XX XX XX), email, URL.
 - Annulation 5 s (écriture différée).

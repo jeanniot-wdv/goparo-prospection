@@ -11,7 +11,7 @@ qu'on traite puis qu'on tamponne.
 | `ciment` | #EDEAE4 | fond de page (jamais de blanc pur) |
 | `papier` | #F7F5F1 | tickets, panneaux, champs |
 | `encre` | #151515 | texte, filets pleins 1,5 px, actions secondaires fortes |
-| `signal` | #FF4F1A | **une seule action principale par écran** (« Lancer la recherche ») |
+| `signal` | #FF4F1A | **une seule action principale par écran** (« Lancer la recherche IA ») |
 | `marque` | #347FAD | bleu Goparo, **réservé aux données enregistrées** |
 | `mute` | #8A857C | libellés, métadonnées |
 | `filet` | #CFC9BE | séparateurs discrets, grilles de graphiques |
@@ -35,6 +35,16 @@ Graphiques : série 1 `marque`, série 2 `signal` (validées CVD), piste `voile`
 - Pas d'arrondis (preset shadcn Lyra), sauf pastilles de filtres mobiles.
 - Filet de découpe pointillé (`decoupe`) sous l'en-tête du ticket, comme une souche.
 - Hachures (`hachures`) pour les zones vides ou en attente.
+
+## Pastille de priorité
+Le score « pX » sous la jauge est un ordinal à 3 paliers, sur les tons neutres du système
+(pas de teinte, pour ne pas empiéter sur `marque` ou `signal`) :
+
+| Palier | Score | Rendu |
+|---|---|---|
+| Haute | ≥ 6 | plein `encre`, texte `papier` |
+| Moyenne | 1 à 5 | fond `voile`, texte `encre` |
+| Basse | ≤ 0 | contour `filet`, texte `mute` |
 
 ## Composants
 shadcn/ui : Button (variante `xl` pour le geste principal), Badge, Checkbox, RadioGroup,
@@ -77,7 +87,7 @@ Tampons : ENRICHI (bleu, À prospecter), À ENRICHIR (encre), FERMÉ (alerte).
 | Touche | Action |
 |---|---|
 | J / K (↓ / ↑) | garage suivant / précédent |
-| C | lancer la recherche (copie le prompt, ouvre Google) |
+| C | lancer la recherche IA (copie le prompt, ouvre Google en mode IA) |
 | T / E / W | saisir tél. / email / site |
 | ⌘↵ (Ctrl+↵) | terminer |
 | N | rien trouvé, ou « Non, introuvable » dans le bandeau |

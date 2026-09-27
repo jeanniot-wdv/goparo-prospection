@@ -22,7 +22,7 @@ lib/
     prospection-rules.ts  sorties de fiche → propriétés Notion (sémantique Oui/Non)
     normalize.ts          mise au format tél. / email / URL
     priority.ts           barème du score (miroir de la formule Notion)
-    search-links.ts       prompt de recherche, liens Google / Maps / annuaire / PagesJaunes
+    search-links.ts       prompt de recherche, URL mode IA (udm=50), liens Google / Maps / annuaire / PagesJaunes
     stats.ts              computeStats (agrégats), applySession (correction client)
   notion/                 accès Notion (serveur, sauf filters/payload qui sont purs)
     client.ts             fetch, en-têtes, NotionError, queryAll paginé

@@ -57,7 +57,7 @@ exposer l'URL publiquement.
 
 1. Choisir qui est au poste (Hiba ou Romain) : le nom est enregistré avec chaque fiche traitée.
 2. Choisir une file (Nouveaux ou À compléter) et filtrer si besoin.
-3. Sur le ticket : **Lancer la recherche** (C), saisir tél. / email / site (T / E / W),
+3. Sur le ticket : **Lancer la recherche IA** (C, ouvre Google en mode IA), saisir tél. / email / site (T / E / W),
    puis **Terminer** (⌘↵), **Rien trouvé** (N), **Passer** (P) ou **Fermé** (appui long).
 4. Chaque sortie peut être annulée pendant 5 s (U).
 
