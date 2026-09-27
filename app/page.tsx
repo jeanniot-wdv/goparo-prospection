@@ -267,21 +267,10 @@ export default function Home() {
     returnToList();
   }
 
-  async function handleConfirmOui() {
-    const dialog = confirmDialog;
+  function handleConfirmOui() {
+    // Trouvé, mais pas encore saisi : on reste sur la fiche pour le renseigner
+    // avant de sortir, sans rien patcher ni retourner à la liste.
     setConfirmDialog(null);
-    // Email saisi, téléphone pas encore cherché : le cas email reste à fermer
-    if (dialog === "tel" && selectedGarage) {
-      setConfirmSaving(true);
-      try {
-        await patchGarage(selectedGarage.id, EMAIL_SAISI_PROPS);
-      } catch (err) {
-        setFicheError(err instanceof Error ? err.message : "Erreur inconnue");
-      } finally {
-        setConfirmSaving(false);
-      }
-    }
-    returnToList();
   }
 
   async function handleConfirmNon() {
