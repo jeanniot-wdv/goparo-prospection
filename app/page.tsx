@@ -268,6 +268,23 @@ export default function Home() {
   }
 
   async function handleConfirmOui() {
+    const dialog = confirmDialog;
+    setConfirmDialog(null);
+    // Email saisi, téléphone pas encore cherché : le cas email reste à fermer
+    if (dialog === "tel" && selectedGarage) {
+      setConfirmSaving(true);
+      try {
+        await patchGarage(selectedGarage.id, EMAIL_SAISI_PROPS);
+      } catch (err) {
+        setFicheError(err instanceof Error ? err.message : "Erreur inconnue");
+      } finally {
+        setConfirmSaving(false);
+      }
+    }
+    returnToList();
+  }
+
+  async function handleConfirmNon() {
     if (!selectedGarage || !confirmDialog) return;
     setConfirmSaving(true);
     try {
@@ -285,23 +302,6 @@ export default function Home() {
       setConfirmDialog(null);
       returnToList();
     }
-  }
-
-  async function handleConfirmNon() {
-    const dialog = confirmDialog;
-    setConfirmDialog(null);
-    // Email saisi, téléphone pas encore cherché : le cas email reste à fermer
-    if (dialog === "tel" && selectedGarage) {
-      setConfirmSaving(true);
-      try {
-        await patchGarage(selectedGarage.id, EMAIL_SAISI_PROPS);
-      } catch (err) {
-        setFicheError(err instanceof Error ? err.message : "Erreur inconnue");
-      } finally {
-        setConfirmSaving(false);
-      }
-    }
-    returnToList();
   }
 
   async function deleteGarage(id: string) {
