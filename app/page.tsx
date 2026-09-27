@@ -409,7 +409,7 @@ function ListeView({
   return (
     <div className="flex flex-1 flex-col px-4 pb-8 pt-6">
       <header className="mb-4">
-        <h1 className="text-xl font-bold text-primary">Goparo Prospection</h1>
+        <h1 className="text-xl font-bold text-marque">Goparo Prospection</h1>
         <p className="text-sm text-neutral-500">Garages sans téléphone ni email</p>
       </header>
 
@@ -419,7 +419,7 @@ function ListeView({
           <select
             value={segmentFilter}
             onChange={(e) => setSegmentFilter(e.target.value as SegmentFilter)}
-            className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-marque focus:outline-none focus:ring-1 focus:ring-marque"
           >
             {(Object.keys(SEGMENT_LABELS) as SegmentFilter[]).map((key) => (
               <option key={key} value={key}>
@@ -437,7 +437,7 @@ function ListeView({
             aria-checked={hideFranchise}
             onClick={() => setHideFranchise(!hideFranchise)}
             className={`inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-              hideFranchise ? "bg-primary" : "bg-neutral-300"
+              hideFranchise ? "bg-marque" : "bg-neutral-300"
             }`}
           >
             <span
@@ -456,7 +456,7 @@ function ListeView({
             aria-checked={enseigneOnly}
             onClick={() => setEnseigneOnly(!enseigneOnly)}
             className={`inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-              enseigneOnly ? "bg-primary" : "bg-neutral-300"
+              enseigneOnly ? "bg-marque" : "bg-neutral-300"
             }`}
           >
             <span
@@ -500,7 +500,7 @@ function ListeView({
           type="button"
           onClick={onLoadMore}
           disabled={loadingMore}
-          className="mt-4 flex items-center justify-center gap-2 rounded-lg border border-primary px-4 py-2.5 text-sm font-medium text-primary transition active:scale-[0.99] disabled:opacity-60"
+          className="mt-4 flex items-center justify-center gap-2 rounded-lg border border-marque px-4 py-2.5 text-sm font-medium text-marque transition active:scale-[0.99] disabled:opacity-60"
         >
           {loadingMore && <Loader2 className="h-4 w-4 animate-spin" />}
           Charger plus
@@ -605,17 +605,17 @@ function FicheView({
         </dl>
 
         {telSaved && (
-          <p className="mt-3 flex items-center gap-2 rounded-md bg-primary/10 px-3 py-2 text-sm text-primary-dark">
+          <p className="mt-3 flex items-center gap-2 rounded-md bg-marque/10 px-3 py-2 text-sm text-marque-fonce">
             <Phone className="h-4 w-4" /> {telSaved}
           </p>
         )}
         {emailSaved && (
-          <p className="mt-2 flex items-center gap-2 rounded-md bg-primary/10 px-3 py-2 text-sm text-primary-dark">
+          <p className="mt-2 flex items-center gap-2 rounded-md bg-marque/10 px-3 py-2 text-sm text-marque-fonce">
             <Mail className="h-4 w-4" /> {emailSaved}
           </p>
         )}
         {siteWebSaved && (
-          <p className="mt-2 flex items-center gap-2 rounded-md bg-primary/10 px-3 py-2 text-sm text-primary-dark">
+          <p className="mt-2 flex items-center gap-2 rounded-md bg-marque/10 px-3 py-2 text-sm text-marque-fonce">
             <Globe className="h-4 w-4" /> {siteWebSaved}
           </p>
         )}
@@ -635,13 +635,13 @@ function FicheView({
               value={telValue}
               onChange={(e) => setTelValue(e.target.value)}
               placeholder="+33 6 12 34 56 78"
-              className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-marque focus:outline-none focus:ring-1 focus:ring-marque"
             />
             <button
               type="button"
               onClick={onValiderTel}
               disabled={savingField === "tel" || !telValue.trim()}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition active:scale-[0.98] disabled:opacity-60"
+              className="rounded-md bg-marque px-4 py-2 text-sm font-medium text-white transition active:scale-[0.98] disabled:opacity-60"
             >
               {savingField === "tel" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Valider"}
             </button>
@@ -657,13 +657,13 @@ function FicheView({
               value={emailValue}
               onChange={(e) => setEmailValue(e.target.value)}
               placeholder="contact@garage.fr"
-              className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-marque focus:outline-none focus:ring-1 focus:ring-marque"
             />
             <button
               type="button"
               onClick={onValiderEmail}
               disabled={savingField === "email" || !emailValue.trim()}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition active:scale-[0.98] disabled:opacity-60"
+              className="rounded-md bg-marque px-4 py-2 text-sm font-medium text-white transition active:scale-[0.98] disabled:opacity-60"
             >
               {savingField === "email" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Valider"}
             </button>
@@ -679,13 +679,13 @@ function FicheView({
               value={siteWebValue}
               onChange={(e) => setSiteWebValue(e.target.value)}
               placeholder="https://garage.fr"
-              className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-marque focus:outline-none focus:ring-1 focus:ring-marque"
             />
             <button
               type="button"
               onClick={onValiderSiteWeb}
               disabled={savingField === "siteWeb" || !siteWebValue.trim()}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition active:scale-[0.98] disabled:opacity-60"
+              className="rounded-md bg-marque px-4 py-2 text-sm font-medium text-white transition active:scale-[0.98] disabled:opacity-60"
             >
               {savingField === "siteWeb" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Valider"}
             </button>
@@ -695,7 +695,7 @@ function FicheView({
         <button
           type="button"
           onClick={() => setActiveInput(activeInput === "tel" ? null : "tel")}
-          className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-white transition active:scale-[0.99]"
+          className="flex items-center justify-center gap-2 rounded-lg bg-marque px-4 py-3 text-sm font-medium text-white transition active:scale-[0.99]"
         >
           <Phone className="h-4 w-4" />
           {telSaved ? "Modifier tél." : "Ajouter tél."}
@@ -704,7 +704,7 @@ function FicheView({
         <button
           type="button"
           onClick={() => setActiveInput(activeInput === "email" ? null : "email")}
-          className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-white transition active:scale-[0.99]"
+          className="flex items-center justify-center gap-2 rounded-lg bg-marque px-4 py-3 text-sm font-medium text-white transition active:scale-[0.99]"
         >
           <Mail className="h-4 w-4" />
           {emailSaved ? "Modifier email" : "Ajouter email"}
@@ -713,7 +713,7 @@ function FicheView({
         <button
           type="button"
           onClick={() => setActiveInput(activeInput === "siteWeb" ? null : "siteWeb")}
-          className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-white transition active:scale-[0.99]"
+          className="flex items-center justify-center gap-2 rounded-lg bg-marque px-4 py-3 text-sm font-medium text-white transition active:scale-[0.99]"
         >
           <Globe className="h-4 w-4" />
           {siteWebSaved ? "Modifier site web" : "Ajouter site web"}
@@ -786,7 +786,7 @@ function ConfirmModal({
             onClick={onOui}
             disabled={saving}
             className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium text-white transition disabled:opacity-60 ${
-              danger ? "bg-red-600" : "bg-primary"
+              danger ? "bg-red-600" : "bg-marque"
             }`}
           >
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
