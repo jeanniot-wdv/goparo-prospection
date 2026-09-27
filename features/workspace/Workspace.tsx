@@ -21,6 +21,8 @@ import { useOperator } from "@/features/operator/useOperator";
 import { useFullscreen } from "./useFullscreen";
 import { SHORTCUT_LEGEND, useKeyboardShortcuts } from "./useKeyboardShortcuts";
 import { useIsDesktop } from "./useMediaQuery";
+import { DayCounter, StatsStrip } from "@/features/stats/StatsStrip";
+import { useStats } from "@/features/stats/useStats";
 
 function Logo() {
   return (
@@ -42,6 +44,7 @@ export function Workspace() {
   const [restored, setRestored] = useState<{ id: string; saisie: Saisie } | null>(null);
   const { operator, setOperator, ready } = useOperator();
   const fullscreen = useFullscreen();
+  const stats = useStats();
 
   // Sur desktop, le ticket s'ouvre sans quitter la liste : premier garage par défaut.
   const selectedIndex = queue.garages.findIndex((g) => g.id === selectedId);
@@ -58,6 +61,7 @@ export function Workspace() {
       const { telephone, email, siteWeb } = entry.payload ?? {};
       setRestored({ id: entry.garage.id, saisie: { telephone, email, siteWeb } });
     },
+    onSent: (entry) => stats.record(entry, operator),
   });
 
   // Sortie d'un ticket : écriture différée (annulable), la fiche quitte la file
@@ -122,7 +126,8 @@ export function Workspace() {
           <OperatorPicker operator={operator} onChange={setOperator} />
         </section>
         <QueueFiltersPanel params={queue.params} update={queue.updateParams} />
-        <div className="mt-auto flex flex-col gap-4">
+        <div className="mt-auto flex flex-col gap-5">
+          <DayCounter live={stats.live} />
           <details className="group">
             <summary className="etiquette cursor-pointer list-none text-mute hover:text-encre">Raccourcis ▸</summary>
             <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 text-[11.5px]">
@@ -156,6 +161,7 @@ export function Workspace() {
               Atelier →
             </Link>
           </div>
+          <StatsStrip live={stats.live} error={stats.error} />
           <Tabs value={queue.params.queue} onValueChange={(v) => queue.updateParams({ queue: v as Queue })}>
             <TabsList variant="line" className="h-9 w-full justify-start gap-4 p-0">
               {QUEUES.map((q) => (
@@ -165,6 +171,11 @@ export function Workspace() {
                   className="flex-none px-0 font-expanded text-[13px] font-extrabold tracking-wide uppercase"
                 >
                   {q.label}
+                  {stats.live && (
+                    <span className="font-mono text-[11px] font-medium text-mute tabular-nums">
+                      {q.value === "nouveaux" ? stats.live.restants : stats.live.aCompleter}
+                    </span>
+                  )}
                 </TabsTrigger>
               ))}
             </TabsList>

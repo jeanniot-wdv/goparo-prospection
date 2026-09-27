@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Garage } from "../types";
-import { addWorkingDays, computeStats, deptOf, phoneKey } from "./stats";
+import { addWorkingDays, applySession, computeStats, deptOf, phoneKey } from "./stats";
 
 let n = 0;
 function garage(over: Partial<Garage> = {}): Garage {
@@ -77,5 +77,28 @@ describe("helpers", () => {
   });
   it("addWorkingDays saute le week-end", () => {
     expect(addWorkingDays("2026-09-25", 1)).toBe("2026-09-28"); // vendredi → lundi
+  });
+});
+
+describe("applySession", () => {
+  const base = computeStats(
+    [garage(), garage(), garage({ telephone: "03 88 00 00 09", prospectionActive: "À enrichir" })],
+    "2026-09-27",
+    new Date("2026-09-27T08:00:00Z"),
+  );
+  const ev = (over: Partial<import("./stats").SessionEvent>) => ({
+    at: "2026-09-27T09:00:00Z", day: "2026-09-27", operator: "Hiba" as const,
+    fromNouveaux: true, fromACompleter: false, addedEmail: true, addedTel: true, ...over,
+  });
+
+  it("ajoute les sorties postérieures au calcul", () => {
+    const live = applySession(base, [ev({}), ev({ at: "2026-09-27T07:00:00Z" })], "2026-09-27");
+    expect(live).toMatchObject({ traites: 2, restants: 1, aujourdhui: 1 });
+    expect(live.aujourdhuiParOperateur).toEqual({ Hiba: 1, Romain: 0 });
+    expect(live.tauxEmail).toBe(0.5);
+  });
+  it("une fiche de la file À compléter ne change pas les restants", () => {
+    const live = applySession(base, [ev({ fromNouveaux: false, fromACompleter: true, addedTel: false })], "2026-09-27");
+    expect(live).toMatchObject({ restants: 2, aCompleter: 0, aujourdhui: 1 });
   });
 });

@@ -218,3 +218,59 @@ export function computeStats(garages: Garage[], today: string, now: Date = new D
     },
   };
 }
+
+// Sortie envoyée à Notion pendant la session, pour corriger des stats en cache.
+export interface SessionEvent {
+  at: string; // ISO
+  day: string; // AAAA-MM-JJ, heure de Paris
+  operator: Operator | null;
+  fromNouveaux: boolean;
+  fromACompleter: boolean;
+  addedEmail: boolean;
+  addedTel: boolean;
+}
+
+export interface LiveStats {
+  total: number;
+  traites: number;
+  restants: number;
+  aCompleter: number;
+  tauxEmail: number | null;
+  tauxTel: number | null;
+  aujourdhui: number;
+  aujourdhuiParOperateur: Record<Operator, number>;
+  rythme: number | null;
+  finEstimee: string | null;
+}
+
+/**
+ * Stats affichées = stats en cache (jusqu'à 10 min de retard, revalidation
+ * « max ») + sorties de la session envoyées après leur calcul.
+ */
+export function applySession(stats: Stats, events: SessionEvent[], today: string): LiveStats {
+  const after = events.filter((e) => e.at > stats.generatedAt);
+  const nouveauxTraites = after.filter((e) => e.fromNouveaux).length;
+  const traites = stats.traites + nouveauxTraites;
+  const avecEmail = stats.avecEmail + after.filter((e) => e.addedEmail).length;
+  const avecTel = stats.avecTel + after.filter((e) => e.addedTel).length;
+
+  const jour = stats.parJour.find((d) => d.date === today);
+  const aujourdhuiParOperateur = Object.fromEntries(
+    OPERATORS.map((o) => [o, (jour?.parOperateur[o] ?? 0) + after.filter((e) => e.day === today && e.operator === o).length]),
+  ) as Record<Operator, number>;
+  const aujourdhui = (jour?.total ?? 0) + after.filter((e) => e.day === today).length;
+  const restants = Math.max(0, stats.restants - nouveauxTraites);
+
+  return {
+    total: stats.total,
+    traites,
+    restants,
+    aCompleter: Math.max(0, stats.aCompleter - after.filter((e) => e.fromACompleter).length),
+    tauxEmail: traites > 0 ? avecEmail / traites : null,
+    tauxTel: traites > 0 ? avecTel / traites : null,
+    aujourdhui,
+    aujourdhuiParOperateur,
+    rythme: stats.rythme,
+    finEstimee: stats.rythme ? addWorkingDays(today, Math.ceil(restants / stats.rythme)) : null,
+  };
+}
