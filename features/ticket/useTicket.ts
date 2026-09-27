@@ -67,8 +67,8 @@ export function ticketReducer(state: TicketState, action: Action): TicketState {
   }
 }
 
-export function useTicket(garage: Garage) {
-  const [state, dispatch] = useReducer(ticketReducer, INITIAL);
+export function useTicket(garage: Garage, initialSaisie?: Saisie) {
+  const [state, dispatch] = useReducer(ticketReducer, { ...INITIAL, saisie: initialSaisie ?? {} });
   const fiche: FicheState = {
     telephoneExistant: garage.telephone,
     emailExistant: garage.email,

@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronLeftIcon } from "lucide-react";
+import { ChevronLeftIcon, MaximizeIcon, MinimizeIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Kbd } from "@/components/ui/kbd";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Queue } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -12,8 +14,12 @@ import { QueueList } from "@/features/queue/QueueList";
 import { useGarageQueue } from "@/features/queue/useGarageQueue";
 import { Ticket, type TicketHandle } from "@/features/ticket/Ticket";
 import { usePendingCommits } from "@/features/ticket/usePendingCommits";
-import type { ExitKind } from "@/lib/domain/prospection-rules";
+import type { ExitKind, Saisie } from "@/lib/domain/prospection-rules";
 import type { UpdateGaragePayload } from "@/lib/types";
+import { OperatorGate, OperatorPicker } from "@/features/operator/OperatorPicker";
+import { useOperator } from "@/features/operator/useOperator";
+import { useFullscreen } from "./useFullscreen";
+import { SHORTCUT_LEGEND, useKeyboardShortcuts } from "./useKeyboardShortcuts";
 import { useIsDesktop } from "./useMediaQuery";
 
 function Logo() {
@@ -33,6 +39,9 @@ export function Workspace() {
   const queue = useGarageQueue();
   const isDesktop = useIsDesktop();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [restored, setRestored] = useState<{ id: string; saisie: Saisie } | null>(null);
+  const { operator, setOperator, ready } = useOperator();
+  const fullscreen = useFullscreen();
 
   // Sur desktop, le ticket s'ouvre sans quitter la liste : premier garage par défaut.
   const selectedIndex = queue.garages.findIndex((g) => g.id === selectedId);
@@ -42,10 +51,12 @@ export function Workspace() {
   const ticketRef = useRef<TicketHandle | null>(null);
 
   const pending = usePendingCommits({
-    operator: null,
+    operator,
     onRestore: (entry) => {
       queue.restore(entry.garage, entry.index);
       setSelectedId(entry.garage.id);
+      const { telephone, email, siteWeb } = entry.payload ?? {};
+      setRestored({ id: entry.garage.id, saisie: { telephone, email, siteWeb } });
     },
   });
 
@@ -59,12 +70,72 @@ export function Workspace() {
     setSelectedId(next?.id ?? null);
   };
 
+  const move = (delta: number) => {
+    const target = queue.garages[Math.max(0, Math.min(queue.garages.length - 1, (index < 0 ? -1 : index) + delta))];
+    if (target) setSelectedId(target.id);
+    if (delta > 0 && index >= queue.garages.length - 3) queue.loadMore();
+  };
+
+  useKeyboardShortcuts({
+    j: () => move(1),
+    ArrowDown: () => move(1),
+    k: () => move(-1),
+    ArrowUp: () => move(-1),
+    c: () => ticketRef.current?.launchSearch(),
+    t: () => ticketRef.current?.edit("telephone"),
+    e: () => ticketRef.current?.edit("email"),
+    w: () => ticketRef.current?.edit("siteWeb"),
+    "Mod+Enter": () => ticketRef.current?.terminer(),
+    n: () => {
+      if (!ticketRef.current?.answer(false)) ticketRef.current?.rienTrouve();
+    },
+    o: () => ticketRef.current?.answer(true),
+    p: () => ticketRef.current?.passer(),
+    u: () => pending.undo(),
+    f: () => fullscreen.toggle(),
+    "/": () => document.querySelector<HTMLInputElement>("[data-shortcut-search]")?.focus(),
+    Escape: () => {
+      if (ticketRef.current?.cancel()) return;
+      if (!isDesktop) setSelectedId(null);
+    },
+  });
+
+  const fullscreenButton = (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button variant="ghost" size="icon-sm" onClick={fullscreen.toggle} aria-label="Plein écran">
+          {fullscreen.active ? <MinimizeIcon /> : <MaximizeIcon />}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        Plein écran <Kbd>F</Kbd>
+      </TooltipContent>
+    </Tooltip>
+  );
+
   return (
     <div className="grid h-dvh grid-cols-[minmax(0,1fr)] overflow-hidden lg:grid-cols-[200px_minmax(0,1fr)_minmax(0,1.3fr)]">
       <aside className="hidden min-h-0 flex-col gap-8 overflow-y-auto trait-r border-encre px-5 py-5 lg:flex">
         <Logo />
+        <section className="flex flex-col gap-2">
+          <h2 className="etiquette text-mute">Au poste</h2>
+          <OperatorPicker operator={operator} onChange={setOperator} />
+        </section>
         <QueueFiltersPanel params={queue.params} update={queue.updateParams} />
-        <div className="mt-auto">
+        <div className="mt-auto flex flex-col gap-4">
+          <details className="group">
+            <summary className="etiquette cursor-pointer list-none text-mute hover:text-encre">Raccourcis ▸</summary>
+            <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 text-[11.5px]">
+              {SHORTCUT_LEGEND.map(([k, label]) => (
+                <div key={k} className="contents">
+                  <dt>
+                    <Kbd>{k}</Kbd>
+                  </dt>
+                  <dd className="text-muted-foreground">{label}</dd>
+                </div>
+              ))}
+            </dl>
+          </details>
           <Link href="/atelier" className="etiquette text-mute hover:text-encre">
             Atelier →
           </Link>
@@ -76,8 +147,11 @@ export function Workspace() {
         aria-label="File de garages"
       >
         <div className="flex flex-col gap-3 trait-b border-encre px-4 pt-4 pb-3">
-          <div className="flex items-center justify-between lg:hidden">
+          <div className="flex items-center justify-between gap-3 lg:hidden">
             <Logo />
+            <div className="w-36">
+              <OperatorPicker operator={operator} onChange={setOperator} />
+            </div>
             <Link href="/atelier" className="etiquette text-mute">
               Atelier →
             </Link>
@@ -116,8 +190,11 @@ export function Workspace() {
             number={queue.numberOf(garage.id)}
             onExit={handleExit}
             handleRef={ticketRef}
+            initialSaisie={restored?.id === garage.id ? restored.saisie : undefined}
             toolbar={
-              !isDesktop && (
+              isDesktop ? (
+                fullscreenButton
+              ) : (
                 <Button variant="ghost" size="sm" onClick={() => setSelectedId(null)}>
                   <ChevronLeftIcon /> Liste
                 </Button>
@@ -132,6 +209,8 @@ export function Workspace() {
           </div>
         )}
       </main>
+
+      {ready && operator === null && <OperatorGate onChange={setOperator} />}
     </div>
   );
 }

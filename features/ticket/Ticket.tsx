@@ -5,7 +5,7 @@ import { SearchIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
-import { availableExits, resolveExit, type ExitKind } from "@/lib/domain/prospection-rules";
+import { availableExits, resolveExit, type ExitKind, type Saisie } from "@/lib/domain/prospection-rules";
 import { buildSearchLinks, buildSearchPrompt } from "@/lib/domain/search-links";
 import type { Garage, UpdateGaragePayload } from "@/lib/types";
 import { ExitBar } from "./ExitBar";
@@ -35,14 +35,17 @@ export function Ticket({
   toolbar,
   onExit,
   handleRef,
+  initialSaisie,
 }: {
   garage: Garage;
   number: string;
   toolbar?: React.ReactNode;
   onExit: (kind: ExitKind, payload: UpdateGaragePayload | null) => void;
   handleRef?: React.RefObject<TicketHandle | null>;
+  // Saisie remise en place après « Annuler ».
+  initialSaisie?: Saisie;
 }) {
-  const { state, dispatch, fiche } = useTicket(garage);
+  const { state, dispatch, fiche } = useTicket(garage, initialSaisie);
   const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => {
     if (exitTimer.current) clearTimeout(exitTimer.current);
