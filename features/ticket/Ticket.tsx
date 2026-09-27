@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { availableExits, resolveExit, type ExitKind, type Saisie } from "@/lib/domain/prospection-rules";
-import { buildSearchLinks, buildSearchPrompt } from "@/lib/domain/search-links";
+import { buildAiSearchUrl, buildSearchPrompt } from "@/lib/domain/search-links";
 import type { Garage, UpdateGaragePayload } from "@/lib/types";
 import { ExitBar } from "./ExitBar";
 import { HoldButton } from "./HoldButton";
@@ -67,13 +67,12 @@ export function Ticket({
   };
 
   const launchSearch = async () => {
-    const google = buildSearchLinks(garage).find((l) => l.id === "google");
-    window.open(google?.url, "_blank", "noopener");
+    window.open(buildAiSearchUrl(garage), "_blank", "noopener");
     try {
       await navigator.clipboard.writeText(buildSearchPrompt(garage));
-      toast.success("Prompt copié, recherche Google ouverte");
+      toast.success("Prompt copié, recherche IA ouverte");
     } catch {
-      toast("Recherche Google ouverte", { description: "Presse-papier indisponible" });
+      toast("Recherche IA ouverte", { description: "Presse-papier indisponible" });
     }
   };
 
@@ -159,7 +158,7 @@ export function Ticket({
         <div className="flex flex-col gap-3">
           <Button size="xl" onClick={launchSearch} disabled={Boolean(state.exiting)} className="w-full">
             <SearchIcon className="size-5" strokeWidth={2.5} />
-            Lancer la recherche
+            Lancer la recherche IA
             <Kbd className="ml-1 bg-encre/10 text-encre/70">C</Kbd>
           </Button>
           <SearchLinks garage={garage} />

@@ -4,9 +4,14 @@ export function getNomAffiche(garage: Pick<Garage, "enseigne" | "nom">): string 
   return garage.enseigne && garage.enseigne.trim() !== "" ? garage.enseigne : garage.nom;
 }
 
-// Prompt copié dans le presse-papier avant d'ouvrir la recherche.
+// Prompt copié dans le presse-papier et utilisé comme requête du mode IA.
 export function buildSearchPrompt(garage: Garage): string {
   return `Téléphone et email du garage ${getNomAffiche(garage)} à ${garage.commune}. Si l'email n'est pas trouvé directement, vérifie les mentions légales du site du garage s'il en a un.`.trim();
+}
+
+// Recherche Google en mode IA (udm=50), requête = buildSearchPrompt. Action du bouton principal.
+export function buildAiSearchUrl(garage: Garage): string {
+  return `https://www.google.com/search?udm=50&q=${encodeURIComponent(buildSearchPrompt(garage))}`;
 }
 
 export interface SearchLink {
