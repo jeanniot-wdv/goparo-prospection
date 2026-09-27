@@ -1,13 +1,32 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Check, ChevronLeft, Copy, Loader2, Mail, Phone } from "lucide-react";
-import type { Garage, GaragesListResponse, Segment } from "@/lib/types";
+import { Check, ChevronLeft, Copy, Globe, Loader2, Mail, Phone, SearchX } from "lucide-react";
+import type { Garage, GaragesListResponse, Segment, UpdateGaragePayload } from "@/lib/types";
 
 type View = "liste" | "fiche";
 type SegmentFilter = Segment | "all";
 type ConfirmDialog = "email" | "tel" | null;
-type ActiveInput = "tel" | "email" | null;
+type ActiveInput = "tel" | "email" | "siteWeb" | null;
+
+// Cf. tableau de mise à jour de Prospection_active (point 5 du brief) :
+// un email saisi (seul ou avec tél.) ferme le cas en "À prospecter".
+const EMAIL_SAISI_PROPS: UpdateGaragePayload = {
+  emailType: "Pro",
+  statutActivite: "inconnu",
+  confiance: "haute",
+  prospectionActive: "À prospecter",
+  notesIa: "Ajouté manuellement par l'équipe",
+};
+
+// Téléphone saisi seul, email confirmé introuvable.
+const TEL_SEUL_EMAIL_NON_TROUVE_PROPS: UpdateGaragePayload = {
+  emailType: "Inconnu",
+  statutActivite: "inconnu",
+  confiance: "haute",
+  prospectionActive: "À enrichir",
+  notesIa: "Téléphone ajouté manuellement ; email non trouvé",
+};
 
 const SEGMENT_LABELS: Record<SegmentFilter, string> = {
   all: "Tous",
@@ -55,14 +74,17 @@ export default function Home() {
   const [activeInput, setActiveInput] = useState<ActiveInput>(null);
   const [telValue, setTelValue] = useState("");
   const [emailValue, setEmailValue] = useState("");
+  const [siteWebValue, setSiteWebValue] = useState("");
   const [telSaved, setTelSaved] = useState<string | null>(null);
   const [emailSaved, setEmailSaved] = useState<string | null>(null);
+  const [siteWebSaved, setSiteWebSaved] = useState<string | null>(null);
   const [savingField, setSavingField] = useState<ActiveInput>(null);
   const [ficheError, setFicheError] = useState<string | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialog>(null);
   const [confirmSaving, setConfirmSaving] = useState(false);
   const [showFermerModal, setShowFermerModal] = useState(false);
   const [fermerSaving, setFermerSaving] = useState(false);
+  const [noCoordSaving, setNoCoordSaving] = useState(false);
 
   const fetchGarages = useCallback(
     async (options: { reset: boolean }) => {
@@ -113,13 +135,16 @@ export default function Home() {
     setActiveInput(null);
     setTelValue("");
     setEmailValue("");
+    setSiteWebValue("");
     setTelSaved(null);
     setEmailSaved(null);
+    setSiteWebSaved(null);
     setSavingField(null);
     setFicheError(null);
     setConfirmDialog(null);
     setShowFermerModal(false);
     setFermerSaving(false);
+    setNoCoordSaving(false);
     setView("fiche");
   }
 
@@ -141,7 +166,7 @@ export default function Home() {
     }
   }
 
-  async function patchGarage(id: string, body: Record<string, unknown>) {
+  async function patchGarage(id: string, body: UpdateGaragePayload) {
     const res = await fetch(`/api/garages/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -184,7 +209,41 @@ export default function Home() {
     }
   }
 
-  function handleRetourListe() {
+  async function handleValiderSiteWeb() {
+    if (!selectedGarage || !siteWebValue.trim()) return;
+    setSavingField("siteWeb");
+    setFicheError(null);
+    try {
+      await patchGarage(selectedGarage.id, { siteWeb: siteWebValue.trim() });
+      setSiteWebSaved(siteWebValue.trim());
+      setActiveInput(null);
+    } catch (err) {
+      setFicheError(err instanceof Error ? err.message : "Erreur inconnue");
+    } finally {
+      setSavingField(null);
+    }
+  }
+
+  async function handleAucuneCoordonnee() {
+    if (!selectedGarage) return;
+    setNoCoordSaving(true);
+    setFicheError(null);
+    try {
+      await patchGarage(selectedGarage.id, {
+        telNonTrouve: true,
+        emailNonTrouve: true,
+        prospectionActive: "À enrichir",
+        notesIa: "Recherche manuelle effectuée, aucune coordonnée trouvée",
+      });
+      returnToList();
+    } catch (err) {
+      setFicheError(err instanceof Error ? err.message : "Erreur inconnue");
+    } finally {
+      setNoCoordSaving(false);
+    }
+  }
+
+  async function handleRetourListe() {
     if (telSaved === null && emailSaved === null) {
       returnToList();
       return;
@@ -197,7 +256,14 @@ export default function Home() {
       setConfirmDialog("tel");
       return;
     }
-    // Les deux ont été saisis
+    // Les deux ont été saisis : email saisi avec tél., pas de dialogue
+    if (selectedGarage) {
+      try {
+        await patchGarage(selectedGarage.id, EMAIL_SAISI_PROPS);
+      } catch (err) {
+        setFicheError(err instanceof Error ? err.message : "Erreur inconnue");
+      }
+    }
     returnToList();
   }
 
@@ -206,9 +272,11 @@ export default function Home() {
     setConfirmSaving(true);
     try {
       if (confirmDialog === "email") {
-        await patchGarage(selectedGarage.id, { email_non_trouve: true });
+        // Téléphone saisi seul, email confirmé introuvable
+        await patchGarage(selectedGarage.id, { emailNonTrouve: true, ...TEL_SEUL_EMAIL_NON_TROUVE_PROPS });
       } else {
-        await patchGarage(selectedGarage.id, { tel_non_trouve: true });
+        // Email saisi, téléphone confirmé introuvable
+        await patchGarage(selectedGarage.id, { telNonTrouve: true, ...EMAIL_SAISI_PROPS });
       }
     } catch (err) {
       setFicheError(err instanceof Error ? err.message : "Erreur inconnue");
@@ -219,8 +287,20 @@ export default function Home() {
     }
   }
 
-  function handleConfirmNon() {
+  async function handleConfirmNon() {
+    const dialog = confirmDialog;
     setConfirmDialog(null);
+    // Email saisi, téléphone pas encore cherché : le cas email reste à fermer
+    if (dialog === "tel" && selectedGarage) {
+      setConfirmSaving(true);
+      try {
+        await patchGarage(selectedGarage.id, EMAIL_SAISI_PROPS);
+      } catch (err) {
+        setFicheError(err instanceof Error ? err.message : "Erreur inconnue");
+      } finally {
+        setConfirmSaving(false);
+      }
+    }
     returnToList();
   }
 
@@ -287,12 +367,18 @@ export default function Home() {
             setTelValue={setTelValue}
             emailValue={emailValue}
             setEmailValue={setEmailValue}
+            siteWebValue={siteWebValue}
+            setSiteWebValue={setSiteWebValue}
             telSaved={telSaved}
             emailSaved={emailSaved}
+            siteWebSaved={siteWebSaved}
             savingField={savingField}
+            noCoordSaving={noCoordSaving}
             ficheError={ficheError}
             onValiderTel={handleValiderTel}
             onValiderEmail={handleValiderEmail}
+            onValiderSiteWeb={handleValiderSiteWeb}
+            onAucuneCoordonnee={handleAucuneCoordonnee}
             onRetourListe={handleRetourListe}
             onFermerClick={handleFermerClick}
           />
@@ -466,12 +552,18 @@ function FicheView({
   setTelValue,
   emailValue,
   setEmailValue,
+  siteWebValue,
+  setSiteWebValue,
   telSaved,
   emailSaved,
+  siteWebSaved,
   savingField,
+  noCoordSaving,
   ficheError,
   onValiderTel,
   onValiderEmail,
+  onValiderSiteWeb,
+  onAucuneCoordonnee,
   onRetourListe,
   onFermerClick,
 }: {
@@ -484,12 +576,18 @@ function FicheView({
   setTelValue: (v: string) => void;
   emailValue: string;
   setEmailValue: (v: string) => void;
+  siteWebValue: string;
+  setSiteWebValue: (v: string) => void;
   telSaved: string | null;
   emailSaved: string | null;
+  siteWebSaved: string | null;
   savingField: ActiveInput;
+  noCoordSaving: boolean;
   ficheError: string | null;
   onValiderTel: () => void;
   onValiderEmail: () => void;
+  onValiderSiteWeb: () => void;
+  onAucuneCoordonnee: () => void;
   onRetourListe: () => void;
   onFermerClick: () => void;
 }) {
@@ -548,6 +646,11 @@ function FicheView({
             <Mail className="h-4 w-4" /> {emailSaved}
           </p>
         )}
+        {siteWebSaved && (
+          <p className="mt-2 flex items-center gap-2 rounded-md bg-primary/10 px-3 py-2 text-sm text-primary-dark">
+            <Globe className="h-4 w-4" /> {siteWebSaved}
+          </p>
+        )}
       </div>
 
       {ficheError && (
@@ -599,6 +702,28 @@ function FicheView({
           </div>
         )}
 
+        {activeInput === "siteWeb" && (
+          <div className="flex gap-2">
+            <input
+              type="url"
+              inputMode="url"
+              autoFocus
+              value={siteWebValue}
+              onChange={(e) => setSiteWebValue(e.target.value)}
+              placeholder="https://garage.fr"
+              className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            <button
+              type="button"
+              onClick={onValiderSiteWeb}
+              disabled={savingField === "siteWeb" || !siteWebValue.trim()}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition active:scale-[0.98] disabled:opacity-60"
+            >
+              {savingField === "siteWeb" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Valider"}
+            </button>
+          </div>
+        )}
+
         <button
           type="button"
           onClick={() => setActiveInput(activeInput === "tel" ? null : "tel")}
@@ -615,6 +740,25 @@ function FicheView({
         >
           <Mail className="h-4 w-4" />
           {emailSaved ? "Modifier email" : "Ajouter email"}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveInput(activeInput === "siteWeb" ? null : "siteWeb")}
+          className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-white transition active:scale-[0.99]"
+        >
+          <Globe className="h-4 w-4" />
+          {siteWebSaved ? "Modifier site web" : "Ajouter site web"}
+        </button>
+
+        <button
+          type="button"
+          onClick={onAucuneCoordonnee}
+          disabled={noCoordSaving}
+          className="flex items-center justify-center gap-2 rounded-lg border border-neutral-300 px-4 py-3 text-sm font-medium text-neutral-700 transition active:scale-[0.99] disabled:opacity-60"
+        >
+          {noCoordSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <SearchX className="h-4 w-4" />}
+          Aucune coordonnées trouvée
         </button>
 
         <button

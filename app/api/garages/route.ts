@@ -11,8 +11,8 @@ export async function GET(request: NextRequest) {
 
   const filter: Record<string, unknown> = {
     and: [
-      { property: "telephone", phone_number: { is_empty: true } },
-      { property: "email", email: { is_empty: true } },
+      { property: "tel_non_trouve", checkbox: { equals: false } },
+      { property: "email_non_trouve", checkbox: { equals: false } },
     ],
   };
 

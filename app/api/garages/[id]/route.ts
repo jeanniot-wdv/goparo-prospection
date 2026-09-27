@@ -20,11 +20,29 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (body.email !== undefined) {
     properties["email"] = { email: body.email };
   }
+  if (body.siteWeb !== undefined) {
+    properties["site_web"] = { url: body.siteWeb };
+  }
   if (body.telNonTrouve !== undefined) {
     properties["tel_non_trouve"] = { checkbox: body.telNonTrouve };
   }
   if (body.emailNonTrouve !== undefined) {
     properties["email_non_trouve"] = { checkbox: body.emailNonTrouve };
+  }
+  if (body.emailType !== undefined) {
+    properties["Email_type"] = { select: { name: body.emailType } };
+  }
+  if (body.statutActivite !== undefined) {
+    properties["Statut_activite"] = { select: { name: body.statutActivite } };
+  }
+  if (body.confiance !== undefined) {
+    properties["Confiance"] = { select: { name: body.confiance } };
+  }
+  if (body.prospectionActive !== undefined) {
+    properties["Prospection_active"] = { select: { name: body.prospectionActive } };
+  }
+  if (body.notesIa !== undefined) {
+    properties["notes_ia"] = { rich_text: [{ text: { content: body.notesIa } }] };
   }
 
   if (Object.keys(properties).length === 0) {
@@ -51,8 +69,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   }
 }
 
-// Archive la page côté Notion (in_trash: true). L'API Notion ne permet pas de
-// suppression définitive — la page reste récupérable depuis la corbeille pendant 30 jours.
+// Marque le garage comme fermé définitivement sans l'archiver : la fiche reste
+// visible et filtrable dans Notion, mais sort de la liste à traiter (checkboxes
+// tel_non_trouve / email_non_trouve à true).
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
@@ -60,7 +79,14 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const response = await fetch(`${NOTION_API_BASE}/pages/${id}`, {
       method: "PATCH",
       headers: notionHeaders(),
-      body: JSON.stringify({ in_trash: true }),
+      body: JSON.stringify({
+        properties: {
+          Statut_activite: { select: { name: "fermé" } },
+          Prospection_active: { select: { name: "Pas intéressé" } },
+          tel_non_trouve: { checkbox: true },
+          email_non_trouve: { checkbox: true },
+        },
+      }),
     });
 
     if (!response.ok) {

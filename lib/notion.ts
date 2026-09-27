@@ -31,6 +31,7 @@ type NotionPropertyValue =
   | { type: "select"; select: { name: string } | null }
   | { type: "phone_number"; phone_number: string | null }
   | { type: "email"; email: string | null }
+  | { type: "url"; url: string | null }
   | { type: "checkbox"; checkbox: boolean };
 
 export interface NotionPage {
@@ -63,6 +64,7 @@ export function mapPageToGarage(page: NotionPage): Garage {
         : null,
     telephone: props["telephone"]?.type === "phone_number" ? props["telephone"].phone_number : null,
     email: props["email"]?.type === "email" ? props["email"].email : null,
+    siteWeb: props["site_web"]?.type === "url" ? props["site_web"].url : null,
     telNonTrouve: props["tel_non_trouve"]?.type === "checkbox" ? props["tel_non_trouve"].checkbox : false,
     emailNonTrouve: props["email_non_trouve"]?.type === "checkbox" ? props["email_non_trouve"].checkbox : false,
   };
