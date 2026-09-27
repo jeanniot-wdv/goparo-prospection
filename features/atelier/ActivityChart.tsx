@@ -3,12 +3,13 @@
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import type { Stats } from "@/lib/domain/stats";
-import { OPERATORS } from "@/lib/types";
-import { DataTable, Empty, GRILLE, Panel, SERIE_1, SERIE_2, nf } from "./Panel";
+import { TRAITE_PAR_VALUES } from "@/lib/types";
+import { DataTable, Empty, GRILLE, Panel, SERIE_1, SERIE_2, SERIE_3, nf } from "./Panel";
 
 const config = {
   Hiba: { label: "Hiba", color: SERIE_1 },
   Romain: { label: "Romain", color: SERIE_2 },
+  Automatisation: { label: "Automatisation", color: SERIE_3 },
 } satisfies ChartConfig;
 
 const jour = (d: string) =>
@@ -26,7 +27,7 @@ export function ActivityChart({ stats }: { stats: Stats }) {
         <span>
           <span className="text-mute">À compléter</span> {nf.format(stats.aCompleter)}
         </span>
-        {OPERATORS.map((o) => (
+        {TRAITE_PAR_VALUES.map((o) => (
           <span key={o}>
             <span className="text-mute">{o}</span> {nf.format(stats.parOperateur[o])}
           </span>
@@ -45,14 +46,14 @@ export function ActivityChart({ stats }: { stats: Stats }) {
             <YAxis tickLine={false} axisLine={false} allowDecimals={false} width={32} />
             <ChartTooltip cursor={{ fill: "var(--color-voile)", opacity: 0.5 }} content={<ChartTooltipContent />} />
             <ChartLegend content={<ChartLegendContent />} />
-            {OPERATORS.map((o) => (
+            {TRAITE_PAR_VALUES.map((o) => (
               <Bar key={o} dataKey={o} stackId="j" fill={`var(--color-${o})`} stroke="var(--color-papier)" strokeWidth={2} />
             ))}
           </BarChart>
         </ChartContainer>
       )}
       {rows.length > 0 && (
-        <DataTable head={["Jour", ...OPERATORS, "Total"]} rows={rows.map((r) => [r.date, ...OPERATORS.map((o) => r[o]), r.total])} />
+        <DataTable head={["Jour", ...TRAITE_PAR_VALUES, "Total"]} rows={rows.map((r) => [r.date, ...TRAITE_PAR_VALUES.map((o) => r[o]), r.total])} />
       )}
     </Panel>
   );

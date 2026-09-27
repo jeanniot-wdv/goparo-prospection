@@ -68,3 +68,23 @@ pas d'équivalent (`HoldButton`, `Stamp`, `Slot`).
 **Décision** : shadcn Chart. Palette validée par le script de la skill dataviz (bleu Goparo /
 orange signal, ΔE CVD 19,4). Chaque graphique a sa vue tableau.
 **Conséquences** : dépendance `recharts`, chargée uniquement sur `/atelier`.
+
+## 11. Automatisation n8n : même traçabilité que l'app, file dédiée pour le RGPD
+**Contexte** : un workflow n8n externe enrichit automatiquement les fiches (cron quotidien),
+en écrivant dans la même base Notion. Un premier audit (2026-09-27) a montré qu'il pouvait
+retraiter des fiches déjà traitées par un humain, laisser des fiches orphelines (aucune case
+`_non_trouve` cochée alors que rien n'est trouvé), et ne posait jamais `traite_le`/`traite_par`
+(travail invisible dans `/atelier`).
+**Décision** : le workflow filtre désormais sur `traite_le` vide comme l'app, écrit
+`traite_le`/`traite_par = "Automatisation"` sur chaque fiche traitée, coche les deux cases
+`_non_trouve` quand rien n'est trouvé, et pose `Prospection_active = "À vérifier (RGPD)"`
+(plutôt que « À prospecter ») quand l'email trouvé semble personnel. L'app expose une file
+dédiée `a-verifier-rgpd` pour qu'un humain valide ces fiches avant prospection ; il n'y a pas
+de sortie de ticket dédiée, la fiche s'ouvre avec tél./email déjà remplis et se traite comme
+n'importe quelle fiche complète.
+**Conséquences** : `traitePar` a un type dédié (`TraitePar = Operator | "Automatisation"`,
+distinct d'`Operator` qui reste réservé au sélecteur « Qui est au poste ? ») ; les stats par
+personne (`parOperateur`, `aujourdhuiParOperateur`) et le graphique d'activité de `/atelier`
+distinguent Hiba, Romain et Automatisation (couleur neutre `mute`, pas une des deux couleurs
+réservées aux personnes). Aucun verrou entre l'app et le workflow : le risque de collision
+reste écarté par le filtre `traite_le` et l'horaire (7h).

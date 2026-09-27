@@ -7,6 +7,8 @@ export const pct = (part: number, total: number) => (total > 0 ? `${Math.round((
 // Couleurs de séries validées (scripts dataviz) : série 1 bleu Goparo, série 2 orange signal.
 export const SERIE_1 = "var(--color-marque)";
 export const SERIE_2 = "var(--color-signal)";
+// Automatisation (n8n) : neutre, pour ne pas empiéter sur les deux couleurs réservées aux personnes.
+export const SERIE_3 = "var(--color-mute)";
 export const PISTE = "var(--color-voile)";
 export const GRILLE = "var(--color-filet)";
 

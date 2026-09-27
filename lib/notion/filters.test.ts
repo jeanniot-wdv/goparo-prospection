@@ -29,6 +29,11 @@ describe("buildQueueFilter", () => {
     ]);
   });
 
+  it("file à vérifier (RGPD) : email personnel détecté par l'automatisation", () => {
+    const { and } = buildQueueFilter({ ...DEFAULT_QUEUE_PARAMS, queue: "a-verifier-rgpd", hideFranchise: false });
+    expect(and).toEqual([{ property: "Prospection_active", select: { equals: "À vérifier (RGPD)" } }]);
+  });
+
   it("département = plage de CP", () => {
     const { and } = buildQueueFilter({ ...DEFAULT_QUEUE_PARAMS, dept: "57" });
     expect(and).toContainEqual({ property: "CP", number: { greater_than_or_equal_to: 57000 } });

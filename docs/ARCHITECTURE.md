@@ -102,7 +102,7 @@ API `2025-09-03`, requêtes sur la **data source** (`NOTION_DATA_SOURCE_ID`).
 | notesIa | `notes_ia` | rich_text | ✔ |
 | scorePriorite | `score_priorite` | **formula** (migration) | |
 | traiteLe | `traite_le` | **date** (migration), jour de Paris | ✔ |
-| traitePar | `traite_par` | **select Hiba / Romain** (migration) | ✔ |
+| traitePar | `traite_par` | **select Hiba / Romain / Automatisation** (migration) | ✔ |
 
 ## Files
 
@@ -110,11 +110,36 @@ API `2025-09-03`, requêtes sur la **data source** (`NOTION_DATA_SOURCE_ID`).
 |---|---|
 | Nouveaux | `telephone` vide · `email` vide · `tel_non_trouve` = false · `email_non_trouve` = false |
 | À compléter | `telephone` non vide · `email` vide · `Prospection_active` = À enrichir · `traite_le` vide |
+| À vérifier (RGPD) | `Prospection_active` = À vérifier (RGPD) |
 
 Filtres communs : segment, franchises masquées (par défaut), enseigne uniquement (désactivé
 par défaut), département par plage de CP (67 = 67000–67999), recherche `or` sur
 `Nom`/`enseigne`/`commune`. Notion limite l'imbrication à 2 niveaux : un `and` racine avec
-au plus un `or`.
+au plus un `or`. La file « À vérifier (RGPD) » n'a pas ces filtres communs de recherche/dept :
+son unique critère est le statut posé par l'automatisation (cf. ci-dessous), et `traite_le`
+n'y est volontairement pas vide (l'automatisation l'a déjà posé).
+
+## Automatisation externe (n8n)
+
+Un workflow n8n (« Goparo - Enrichissement automatique garages », hors dépôt) tourne tous les
+jours à 7h et écrit dans la **même base Notion** que l'app, en dehors de toute session
+utilisateur :
+- sélectionne les fiches `email` vide, `email_non_trouve` = false et `traite_le` vide (donc
+  jamais une fiche déjà traitée par un humain ou par un run précédent) ;
+- cherche l'email et le téléphone (site web de la fiche, puis recherche Google AI Mode via
+  SerpApi si pas de site connu) et écrit les mêmes propriétés que l'app (`email`, `telephone`,
+  `site_web`, `Email_type`, `Statut_activite`, `Confiance`, `notes_ia`, `tel_non_trouve` /
+  `email_non_trouve`, `Prospection_active`) ainsi que `traite_le` / `traite_par =
+  Automatisation`, pour rester traçable dans `/atelier` et sortir des files comme une fiche
+  traitée manuellement ;
+- pose `Prospection_active = "À vérifier (RGPD)"` (au lieu de « À prospecter ») quand l'email
+  trouvé semble personnel plutôt que professionnel, pour qu'un humain valide avant
+  prospection — d'où la file dédiée ci-dessus ;
+- coche systématiquement les deux cases `_non_trouve` en cas de fermeture détectée, comme la
+  sortie « Fermé » de l'app.
+
+Aucun verrou entre l'app et ce workflow : le risque de collision est limité par le filtre
+`traite_le` vide et par l'horaire (7h, hors heures de traitement).
 
 ## Sorties de fiche → propriétés
 
@@ -128,3 +153,8 @@ au plus un `or`.
 | Passer | — | site web seul s'il a été saisi, **sans** traçabilité | — |
 
 « Oui, je le saisis » ne sort pas : le bandeau se ferme et l'emplacement manquant s'ouvre.
+
+Une fiche de la file « À vérifier (RGPD) » s'ouvre avec tél. et email déjà remplis : aucune
+sortie dédiée, le ticket propose directement « Terminer » (le reclasse en À prospecter, Email_type
+Pro) — l'humain confirme ou corrige les emplacements avant de sortir, comme sur n'importe
+quelle fiche.

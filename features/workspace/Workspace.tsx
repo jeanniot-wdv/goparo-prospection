@@ -23,6 +23,7 @@ import { SHORTCUT_LEGEND, useKeyboardShortcuts } from "./useKeyboardShortcuts";
 import { useIsDesktop } from "./useMediaQuery";
 import { DayCounter, StatsStrip } from "@/features/stats/StatsStrip";
 import { useStats } from "@/features/stats/useStats";
+import type { LiveStats } from "@/lib/domain/stats";
 
 function Logo() {
   return (
@@ -35,7 +36,14 @@ function Logo() {
 const QUEUES: { value: Queue; label: string }[] = [
   { value: "nouveaux", label: "Nouveaux" },
   { value: "a-completer", label: "À compléter" },
+  { value: "a-verifier-rgpd", label: "RGPD" },
 ];
+
+function queueCount(live: LiveStats, queue: Queue): number {
+  if (queue === "nouveaux") return live.restants;
+  if (queue === "a-verifier-rgpd") return live.aVerifierRgpd;
+  return live.aCompleter;
+}
 
 export function Workspace() {
   const queue = useGarageQueue();
@@ -178,7 +186,7 @@ export function Workspace() {
                   {q.label}
                   {stats.live && (
                     <span className="font-mono text-[11px] font-medium text-mute tabular-nums">
-                      {q.value === "nouveaux" ? stats.live.restants : stats.live.aCompleter}
+                      {queueCount(stats.live, q.value)}
                     </span>
                   )}
                 </TabsTrigger>

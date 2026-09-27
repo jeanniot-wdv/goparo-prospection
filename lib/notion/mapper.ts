@@ -1,4 +1,4 @@
-import type { Effectif, Garage, Operator } from "../types";
+import type { Effectif, Garage, TraitePar } from "../types";
 import { PROPS } from "./schema";
 
 // Forme minimale des valeurs de propriétés Notion utilisées par l'app.
@@ -81,6 +81,6 @@ export function mapPageToGarage(page: NotionPage): Garage {
     notesIa: plainText(props[PROPS.notesIa]),
     scorePriorite: num(props, PROPS.scorePriorite),
     traiteLe: date(props, PROPS.traiteLe),
-    traitePar: select<Operator>(props, PROPS.traitePar),
+    traitePar: select<TraitePar>(props, PROPS.traitePar),
   };
 }

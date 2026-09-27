@@ -17,6 +17,10 @@ Outil interne : compléter à la main les coordonnées des garages de la base No
 ## Règles essentielles
 - **Ne jamais écrire dans Notion** (script, test manuel ou automatisé) sans accord explicite.
   Les tests navigateur doivent intercepter `PATCH`/`DELETE /api/garages/{id}`.
+- Un workflow n8n externe écrit aussi dans cette base (enrichissement automatique quotidien) :
+  cf. « Automatisation externe (n8n) » dans `ARCHITECTURE.md`. Toute nouvelle propriété ou
+  règle métier touchant `telephone`/`email`/`Prospection_active`/`traite_le`/`traite_par` doit
+  rester cohérente avec ce workflow, pas seulement avec l'app.
 - **Sémantique Oui/Non** des bandeaux « Email / Téléphone trouvé ? » : « Oui, je le saisis »
   reste sur la fiche sans rien écrire ; seul « Non » coche la case `_non_trouve` et sort.
   Source : `lib/domain/prospection-rules.ts` (+ tests).

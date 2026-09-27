@@ -28,6 +28,12 @@ parcours mobile au pouce, sur shadcn/ui (Lyra).
 - Page `/atelier` : progression par département, taux de réussite par segment et effectif,
   activité par jour et par personne, entonnoir `Prospection_active`, qualité des données.
 
+**Automatisation n8n**
+- Workflow externe d'enrichissement automatique (cron quotidien), corrigé le 2026-09-27 pour
+  respecter la traçabilité et la sémantique de l'app (cf. `docs/ARCHITECTURE.md`).
+- File dédiée « À vérifier (RGPD) » dans l'app pour valider les emails personnels détectés
+  par ce workflow.
+
 ## Limites connues
 - Le scan des stats est lent à froid (base entière) : premier affichage de `/atelier` et
   du bandeau lent toutes les 10 min environ (servi ensuite depuis le cache).

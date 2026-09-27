@@ -16,9 +16,15 @@ export type ProspectionActive =
 export type Effectif = "00" | "01" | "02" | "03" | "NN";
 export type Operator = "Hiba" | "Romain";
 export const OPERATORS: Operator[] = ["Hiba", "Romain"];
+// traite_par peut aussi valoir "Automatisation" (écrit par le workflow n8n), qui n'est pas
+// un opérateur sélectionnable dans l'app (cf. OperatorPicker) mais doit apparaître dans les
+// stats par personne (parOperateur, aujourdhuiParOperateur).
+export type TraitePar = Operator | "Automatisation";
+export const TRAITE_PAR_VALUES: TraitePar[] = [...OPERATORS, "Automatisation"];
 
-// Deux files de travail : fiches jamais traitées, et fiches avec tél. mais sans email.
-export type Queue = "nouveaux" | "a-completer";
+// Trois files de travail : fiches jamais traitées, fiches avec tél. mais sans email,
+// et fiches où l'automatisation a trouvé un email personnel à faire valider (RGPD).
+export type Queue = "nouveaux" | "a-completer" | "a-verifier-rgpd";
 export type Dept = "67" | "57" | "54" | "all";
 
 export interface Garage {
@@ -45,7 +51,7 @@ export interface Garage {
   notesIa: string;
   scorePriorite: number | null;
   traiteLe: string | null;
-  traitePar: Operator | null;
+  traitePar: TraitePar | null;
 }
 
 export interface GaragesListResponse {

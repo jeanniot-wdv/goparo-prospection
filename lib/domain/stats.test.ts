@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Garage } from "../types";
-import { addWorkingDays, applySession, computeStats, deptOf, phoneKey } from "./stats";
+import { addWorkingDays, applySession, computeStats, deptOf, isAVerifierRgpd, phoneKey } from "./stats";
 
 let n = 0;
 function garage(over: Partial<Garage> = {}): Garage {
@@ -28,13 +28,32 @@ describe("computeStats", () => {
   const s = computeStats(garages, "2026-09-26", new Date("2026-09-26T10:00:00Z"));
 
   it("compteurs globaux", () => {
-    expect(s).toMatchObject({ total: 6, traites: 4, restants: 2, aCompleter: 1, avecEmail: 1, avecTel: 3 });
+    expect(s).toMatchObject({ total: 6, traites: 4, restants: 2, aCompleter: 1, aVerifierRgpd: 0, avecEmail: 1, avecTel: 3 });
   });
+
+  it("file à vérifier (RGPD)", () => {
+    const withRgpd = [
+      ...garages,
+      garage({ telephone: "03 88 00 00 02", email: "a@b.fr", prospectionActive: "À vérifier (RGPD)", traiteLe: "2026-09-26", traitePar: "Romain" }),
+    ];
+    expect(computeStats(withRgpd, "2026-09-26").aVerifierRgpd).toBe(1);
+    expect(isAVerifierRgpd(withRgpd.at(-1)!)).toBe(true);
+  });
+  it("l'automatisation apparaît dans les stats par personne", () => {
+    const withAuto = [
+      ...garages,
+      garage({ telephone: "03 88 00 00 03", email: "a@c.fr", traiteLe: "2026-09-26", traitePar: "Automatisation" }),
+    ];
+    const stats = computeStats(withAuto, "2026-09-26");
+    expect(stats.parOperateur).toMatchObject({ Automatisation: 1 });
+    expect(stats.parJour.find((d) => d.date === "2026-09-26")?.parOperateur).toMatchObject({ Automatisation: 1 });
+  });
+
   it("activité par jour et par personne", () => {
-    expect(s.parOperateur).toEqual({ Hiba: 1, Romain: 2 });
+    expect(s.parOperateur).toEqual({ Hiba: 1, Romain: 2, Automatisation: 0 });
     expect(s.parJour).toEqual([
-      { date: "2026-09-25", total: 1, parOperateur: { Hiba: 1, Romain: 0 } },
-      { date: "2026-09-26", total: 2, parOperateur: { Hiba: 0, Romain: 2 } },
+      { date: "2026-09-25", total: 1, parOperateur: { Hiba: 1, Romain: 0, Automatisation: 0 } },
+      { date: "2026-09-26", total: 2, parOperateur: { Hiba: 0, Romain: 2, Automatisation: 0 } },
     ]);
   });
   it("rythme et fin estimée en jours ouvrés", () => {
@@ -88,13 +107,13 @@ describe("applySession", () => {
   );
   const ev = (over: Partial<import("./stats").SessionEvent>) => ({
     at: "2026-09-27T09:00:00Z", day: "2026-09-27", operator: "Hiba" as const,
-    fromNouveaux: true, fromACompleter: false, addedEmail: true, addedTel: true, ...over,
+    fromNouveaux: true, fromACompleter: false, fromRgpd: false, addedEmail: true, addedTel: true, ...over,
   });
 
   it("ajoute les sorties postérieures au calcul", () => {
     const live = applySession(base, [ev({}), ev({ at: "2026-09-27T07:00:00Z" })], "2026-09-27");
     expect(live).toMatchObject({ traites: 2, restants: 1, aujourdhui: 1 });
-    expect(live.aujourdhuiParOperateur).toEqual({ Hiba: 1, Romain: 0 });
+    expect(live.aujourdhuiParOperateur).toEqual({ Hiba: 1, Romain: 0, Automatisation: 0 });
     expect(live.tauxEmail).toBe(0.5);
   });
   it("une fiche de la file À compléter ne change pas les restants", () => {

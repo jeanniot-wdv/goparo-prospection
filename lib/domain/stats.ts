@@ -1,4 +1,4 @@
-import { OPERATORS, type Garage, type Operator, type ProspectionActive } from "../types";
+import { TRAITE_PAR_VALUES, type Garage, type Operator, type ProspectionActive, type TraitePar } from "../types";
 
 export const ZONE_DEPTS = ["54", "55", "57", "67", "68", "88"];
 export const FUNNEL_ORDER: (ProspectionActive | "(vide)")[] = [
@@ -25,7 +25,7 @@ export interface Rate {
 export interface DayActivity {
   date: string;
   total: number;
-  parOperateur: Record<Operator, number>;
+  parOperateur: Record<TraitePar, number>;
 }
 
 export interface GarageRef {
@@ -41,9 +41,10 @@ export interface Stats {
   traites: number;
   restants: number;
   aCompleter: number;
+  aVerifierRgpd: number;
   avecEmail: number;
   avecTel: number;
-  parOperateur: Record<Operator, number>;
+  parOperateur: Record<TraitePar, number>;
   parJour: DayActivity[];
   // Fiches par jour d'activité sur les 14 derniers jours (null sans activité récente).
   rythme: number | null;
@@ -67,6 +68,11 @@ export function isNouveau(g: Garage) {
 
 export function isACompleter(g: Garage) {
   return Boolean(g.telephone) && !g.email && g.prospectionActive === "À enrichir" && !g.traiteLe;
+}
+
+// Même définition que la file « a-verifier-rgpd ».
+export function isAVerifierRgpd(g: Garage) {
+  return g.prospectionActive === "À vérifier (RGPD)";
 }
 
 export function deptOf(cp: number | null): string | null {
@@ -131,7 +137,7 @@ export const EFFECTIF_LABELS: Record<string, string> = {
 
 export function computeStats(garages: Garage[], today: string, now: Date = new Date()): Stats {
   const traites = garages.filter((g) => !isNouveau(g));
-  const parOperateur = Object.fromEntries(OPERATORS.map((o) => [o, 0])) as Record<Operator, number>;
+  const parOperateur = Object.fromEntries(TRAITE_PAR_VALUES.map((o) => [o, 0])) as Record<TraitePar, number>;
 
   const days = new Map<string, DayActivity>();
   for (const g of garages) {
@@ -140,7 +146,7 @@ export function computeStats(garages: Garage[], today: string, now: Date = new D
     const day = days.get(date) ?? {
       date,
       total: 0,
-      parOperateur: Object.fromEntries(OPERATORS.map((o) => [o, 0])) as Record<Operator, number>,
+      parOperateur: Object.fromEntries(TRAITE_PAR_VALUES.map((o) => [o, 0])) as Record<TraitePar, number>,
     };
     day.total++;
     if (g.traitePar) {
@@ -191,6 +197,7 @@ export function computeStats(garages: Garage[], today: string, now: Date = new D
     traites: traites.length,
     restants,
     aCompleter: garages.filter(isACompleter).length,
+    aVerifierRgpd: garages.filter(isAVerifierRgpd).length,
     avecEmail: garages.filter((g) => g.email).length,
     avecTel: garages.filter((g) => g.telephone).length,
     parOperateur,
@@ -223,6 +230,7 @@ export interface SessionEvent {
   operator: Operator | null;
   fromNouveaux: boolean;
   fromACompleter: boolean;
+  fromRgpd: boolean;
   addedEmail: boolean;
   addedTel: boolean;
 }
@@ -232,10 +240,11 @@ export interface LiveStats {
   traites: number;
   restants: number;
   aCompleter: number;
+  aVerifierRgpd: number;
   tauxEmail: number | null;
   tauxTel: number | null;
   aujourdhui: number;
-  aujourdhuiParOperateur: Record<Operator, number>;
+  aujourdhuiParOperateur: Record<TraitePar, number>;
   rythme: number | null;
   finEstimee: string | null;
 }
@@ -253,8 +262,8 @@ export function applySession(stats: Stats, events: SessionEvent[], today: string
 
   const jour = stats.parJour.find((d) => d.date === today);
   const aujourdhuiParOperateur = Object.fromEntries(
-    OPERATORS.map((o) => [o, (jour?.parOperateur[o] ?? 0) + after.filter((e) => e.day === today && e.operator === o).length]),
-  ) as Record<Operator, number>;
+    TRAITE_PAR_VALUES.map((o) => [o, (jour?.parOperateur[o] ?? 0) + after.filter((e) => e.day === today && e.operator === o).length]),
+  ) as Record<TraitePar, number>;
   const aujourdhui = (jour?.total ?? 0) + after.filter((e) => e.day === today).length;
   const restants = Math.max(0, stats.restants - nouveauxTraites);
 
@@ -263,6 +272,7 @@ export function applySession(stats: Stats, events: SessionEvent[], today: string
     traites,
     restants,
     aCompleter: Math.max(0, stats.aCompleter - after.filter((e) => e.fromACompleter).length),
+    aVerifierRgpd: Math.max(0, stats.aVerifierRgpd - after.filter((e) => e.fromRgpd).length),
     tauxEmail: traites > 0 ? avecEmail / traites : null,
     tauxTel: traites > 0 ? avecTel / traites : null,
     aujourdhui,

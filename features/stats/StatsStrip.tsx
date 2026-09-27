@@ -1,7 +1,7 @@
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { LiveStats } from "@/lib/domain/stats";
-import { OPERATORS } from "@/lib/types";
+import { TRAITE_PAR_VALUES } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const pct = (v: number | null) => (v === null ? "—" : `${Math.round(v * 100)} %`);
@@ -63,7 +63,7 @@ export function DayCounter({ live }: { live: LiveStats | null }) {
             <span className="ml-1 align-top text-lg text-signal">✓</span>
           </span>
           <span className="font-mono text-[11px] text-mute">
-            {OPERATORS.map((o) => `${o} ${live.aujourdhuiParOperateur[o]}`).join(" · ")}
+            {TRAITE_PAR_VALUES.map((o) => `${o} ${live.aujourdhuiParOperateur[o]}`).join(" · ")}
           </span>
         </>
       ) : (

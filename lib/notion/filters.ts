@@ -19,7 +19,7 @@ export const DEFAULT_QUEUE_PARAMS: QueueParams = {
   q: "",
 };
 
-const QUEUES: Queue[] = ["nouveaux", "a-completer"];
+const QUEUES: Queue[] = ["nouveaux", "a-completer", "a-verifier-rgpd"];
 const DEPTS: Dept[] = ["67", "57", "54", "all"];
 const SEGMENTS: Segment[] = ["structure_employeuse", "solo_non_employeur"];
 
@@ -54,7 +54,11 @@ export function toSearchParams(params: QueueParams): URLSearchParams {
  *
  * - nouveaux : ni tél. ni email, et aucune case « non trouvé » cochée ;
  * - a-completer : tél. connu, email vide, « À enrichir » et jamais traité dans
- *   l'app (traite_le vide) — une fiche traitée sort donc d'elle-même de la file.
+ *   l'app (traite_le vide) — une fiche traitée sort donc d'elle-même de la file ;
+ * - a-verifier-rgpd : email personnel trouvé par l'automatisation n8n
+ *   (Prospection_active = « À vérifier (RGPD) »), à valider par un humain avant
+ *   prospection. Contrairement aux deux autres files, `traite_le` n'est pas vide
+ *   (l'automatisation l'a déjà posé) : ce n'est pas un critère de sortie ici.
  */
 export function buildQueueFilter(params: QueueParams) {
   const and: unknown[] = [];
@@ -66,6 +70,8 @@ export function buildQueueFilter(params: QueueParams) {
       { property: PROPS.telNonTrouve, checkbox: { equals: false } },
       { property: PROPS.emailNonTrouve, checkbox: { equals: false } },
     );
+  } else if (params.queue === "a-verifier-rgpd") {
+    and.push({ property: PROPS.prospectionActive, select: { equals: "À vérifier (RGPD)" } });
   } else {
     and.push(
       { property: PROPS.telephone, phone_number: { is_not_empty: true } },

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { fetchStats } from "@/lib/api/garages-client";
-import { applySession, isACompleter, isNouveau, type SessionEvent, type Stats } from "@/lib/domain/stats";
+import { applySession, isACompleter, isAVerifierRgpd, isNouveau, type SessionEvent, type Stats } from "@/lib/domain/stats";
 import { parisDay } from "@/lib/notion/payload";
 import type { Operator } from "@/lib/types";
 import type { PendingEntry } from "@/features/ticket/usePendingCommits";
@@ -43,6 +43,7 @@ export function useStats() {
         operator,
         fromNouveaux: isNouveau(entry.garage),
         fromACompleter: isACompleter(entry.garage),
+        fromRgpd: isAVerifierRgpd(entry.garage),
         addedEmail: Boolean(entry.payload?.email),
         addedTel: Boolean(entry.payload?.telephone),
       },
