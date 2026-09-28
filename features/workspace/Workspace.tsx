@@ -178,7 +178,7 @@ export function Workspace() {
           <Tabs value={queue.params.queue} onValueChange={(v) => queue.updateParams({ queue: v as Queue })} className="min-w-0">
             <TabsList
               variant="line"
-              className="h-9 w-full min-w-0 touch-pan-x justify-start gap-4 overflow-x-auto p-0 [scrollbar-width:none]"
+              className="w-full min-w-0 touch-pan-x justify-start gap-4 overflow-x-auto overflow-y-hidden p-0 pb-[5px] [scrollbar-width:none] group-data-horizontal/tabs:h-[37px]"
             >
               {QUEUES.map((q) => (
                 <TabsTrigger

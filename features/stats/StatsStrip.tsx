@@ -36,7 +36,7 @@ export function StatsStrip({ live, error }: { live: LiveStats | null; error: str
         aria-label="Progression"
         className="h-1.5 bg-voile [&>div]:bg-encre"
       />
-      <div className="-mx-4 flex touch-pan-x divide-x divide-filet overflow-x-auto px-4 [scrollbar-width:none]">
+      <div className="-mx-4 flex touch-pan-x divide-x divide-filet overflow-x-auto overflow-y-hidden px-4 pb-0.5 [scrollbar-width:none]">
         <Cell label="Traités">
           {nf.format(live.traites)}
           <span className="text-mute">/{nf.format(live.total)}</span>
