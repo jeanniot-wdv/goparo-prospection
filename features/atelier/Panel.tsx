@@ -70,9 +70,9 @@ export function DataTable({ head, rows }: { head: string[]; rows: (string | numb
 
 export function StatTile({ label, value, hint, accent }: { label: string; value: React.ReactNode; hint?: React.ReactNode; accent?: boolean }) {
   return (
-    <div className={cn("flex flex-col gap-1 trait border-encre p-4", accent ? "bg-encre text-papier" : "bg-papier")}>
+    <div className={cn("flex min-w-0 flex-col gap-1 trait border-encre p-4", accent ? "bg-encre text-papier" : "bg-papier")}>
       <span className={cn("etiquette", accent ? "text-papier/60" : "text-mute")}>{label}</span>
-      <span className="font-expanded text-[clamp(1.8rem,3vw,2.6rem)] leading-none font-black tabular-nums">{value}</span>
+      <span className="font-expanded text-[clamp(1.8rem,3vw,2.6rem)] leading-none font-black tabular-nums wrap-break-word hyphens-auto">{value}</span>
       {hint && <span className={cn("font-mono text-[11.5px]", accent ? "text-papier/70" : "text-mute")}>{hint}</span>}
     </div>
   );

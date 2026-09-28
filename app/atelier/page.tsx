@@ -15,8 +15,9 @@ export const metadata: Metadata = { title: "Atelier · Goparo Prospection" };
 
 const heure = (iso: string) =>
   new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" }).format(new Date(iso));
+// Mois abrégé : en toutes lettres, un mois comme "décembre" déborde de la vignette (police large).
 const date = (d: string) =>
-  new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(`${d}T12:00:00Z`));
+  new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${d}T12:00:00Z`));
 
 async function Dashboard() {
   // Rendu à la demande uniquement : jamais de scan Notion pendant le build.
