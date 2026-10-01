@@ -58,26 +58,18 @@ export function Ticket({
   };
 
   const launchSearch = async () => {
-    // Onglet nommé : chaque clic réutilise le même onglet au lieu d'en ouvrir un nouveau.
-    // Pas de « noopener » (il forcerait un nouvel onglet) : on coupe l'opener à la main.
-    const tab = window.open(buildAiSearchUrl(garage), "goparo-recherche-ia");
-    if (tab) tab.opener = null;
-    let copied = true;
+    // Clic sur un lien plutôt que window.open : les navigateurs de bureau le bloquaient (null).
+    // Réutiliser un onglet est impossible : Google l'isole (COOP), le nom de cible est perdu.
+    const link = document.createElement("a");
+    link.href = buildAiSearchUrl(garage);
+    link.target = "_blank";
+    link.click();
     try {
       await navigator.clipboard.writeText(buildSearchPrompt(garage));
+      toast.success("Prompt copié, recherche IA ouverte");
     } catch {
-      copied = false;
+      toast("Recherche IA ouverte", { description: "Presse-papier indisponible" });
     }
-    if (!tab) {
-      // Bloqué par le navigateur : le clic sur l'action du toast est un nouveau geste utilisateur.
-      toast.error("Onglet bloqué par le navigateur", {
-        action: {
-          label: "Ouvrir",
-          onClick: () => window.open(buildAiSearchUrl(garage), "goparo-recherche-ia"),
-        },
-      });
-    } else if (copied) toast.success("Prompt copié, recherche IA ouverte");
-    else toast("Recherche IA ouverte", { description: "Presse-papier indisponible" });
   };
 
   const handle: TicketHandle = {
