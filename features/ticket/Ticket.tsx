@@ -114,15 +114,12 @@ export function Ticket({
   return (
     <div className="flex min-h-full flex-col">
       <article
-        className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-5 sm:px-6 lg:gap-7 lg:px-8 lg:py-7"
+        className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-4 py-5 sm:gap-6 sm:px-6 lg:gap-7 lg:px-8 lg:py-7"
       >
         <TicketHeader garage={garage} number={number} toolbar={toolbar} />
 
         <div className="flex flex-col gap-3 rounded-md border bg-card p-4">
-          <div>
-            <h2 className="text-sm font-semibold">Rechercher les coordonnées</h2>
-            <p className="mt-1 text-xs text-muted-foreground">Le prompt est copié et la recherche s’ouvre dans un nouvel onglet.</p>
-          </div>
+          <h2 className="text-sm font-semibold">Rechercher les coordonnées</h2>
           <Button size="xl" onClick={launchSearch} disabled={Boolean(state.exiting)} className="w-full">
             <SearchIcon className="size-4" />
             Lancer la recherche IA
@@ -159,7 +156,7 @@ export function Ticket({
           />
         </div>
 
-        <div className="mt-auto flex justify-start pt-2 lg:hidden">
+        <div className="mt-auto flex justify-center pt-2 lg:hidden">
           <CloseGarageAction onClose={() => exit("ferme")} disabled={Boolean(state.exiting)} compact />
         </div>
       </article>

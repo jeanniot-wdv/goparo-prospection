@@ -162,7 +162,7 @@ export function QueueSearch({ value, onChange }: { value: string; onChange: (q: 
         placeholder="Nom, enseigne, commune…"
         aria-label="Rechercher un garage"
         data-shortcut-search
-        className="h-10 bg-card pl-9 text-sm [&::-webkit-search-cancel-button]:hidden"
+        className="h-10 bg-card pl-9 sm:text-sm [&::-webkit-search-cancel-button]:hidden"
       />
       {draft && (
         <button

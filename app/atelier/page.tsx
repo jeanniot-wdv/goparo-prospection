@@ -79,7 +79,7 @@ function DashboardSkeleton() {
 export default function AtelierPage() {
   return (
     <div className="min-h-dvh bg-inset">
-      <header className="flex h-14 items-center justify-between border-b bg-card px-4 sm:px-6">
+      <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-card px-4 sm:px-6">
         <Link href="/" className="text-[17px] font-semibold tracking-[-0.03em] text-foreground">Goparo<span className="text-link">.</span></Link>
         <div className="flex items-center gap-1">
           <Button asChild variant="ghost" size="sm" className="text-foreground"><Link href="/">Poste de travail</Link></Button>

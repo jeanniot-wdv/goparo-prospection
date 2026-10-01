@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ChevronLeftIcon, MaximizeIcon, MinimizeIcon } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -61,6 +61,13 @@ export function Workspace() {
   const garage = index >= 0 ? queue.garages[index] : null;
   const ticketOpen = garage !== null && (isDesktop || selectedIndex >= 0);
   const ticketRef = useRef<TicketHandle | null>(null);
+  const mainRef = useRef<HTMLElement | null>(null);
+
+  // Nouvelle fiche (sortie de ticket, sélection dans la file) : repartir en haut
+  // de la zone de scroll, plutôt que de garder la position de la fiche précédente.
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0 });
+  }, [garage?.id]);
 
   const pending = usePendingCommits({
     operator,
@@ -201,7 +208,7 @@ export function Workspace() {
           </div>
         </section>
 
-        <main className={cn("min-h-0 overflow-y-auto bg-inset", !ticketOpen && "hidden lg:block")} aria-label="Fiche garage">
+        <main ref={mainRef} className={cn("min-h-0 overflow-y-auto bg-inset", !ticketOpen && "hidden lg:block")} aria-label="Fiche garage">
           {garage ? (
             <Ticket
               key={garage.id}

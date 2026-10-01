@@ -56,7 +56,7 @@ export function TicketHeader({ garage, number, toolbar }: { garage: Garage; numb
     </dl>
   );
   return (
-    <header className="flex flex-col gap-5">
+    <header className="flex flex-col gap-3 sm:gap-5">
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary" className="font-mono tabular-nums">#{number}</Badge>
