@@ -82,8 +82,8 @@ export function ExitBar({
           <div className="hidden lg:block"><CloseGarageAction onClose={onFerme} disabled={disabled} compact /></div>
           <div className="grid flex-1 grid-cols-2 gap-2 lg:ml-auto lg:flex lg:flex-none">
             {known ? (
-              <Button variant="outline" size="lg" onClick={onPasser} disabled={disabled}>
-                Passer <Kbd>P</Kbd>
+              <Button variant="accent" size="lg" onClick={onPasser} disabled={disabled}>
+                Passer <Kbd className="bg-accent-foreground/15 text-accent-foreground">P</Kbd>
               </Button>
             ) : (
               <Button variant="outline" size="lg" onClick={onRienTrouve} disabled={disabled}>
@@ -91,14 +91,16 @@ export function ExitBar({
               </Button>
             )}
             <Button
-              variant="secondary"
+              variant={known ? "default" : "accent"}
               size="lg"
               onClick={known ? onTerminer : onPasser}
               disabled={disabled}
               className="font-semibold"
             >
               {known ? "Terminer" : "Passer"}
-              <Kbd>{known ? "⌘↵" : "P"}</Kbd>
+              <Kbd className={known ? "bg-primary-foreground/15 text-primary-foreground" : "bg-accent-foreground/15 text-accent-foreground"}>
+                {known ? "⌘↵" : "P"}
+              </Kbd>
             </Button>
           </div>
         </div>

@@ -36,7 +36,7 @@ export function Panel({
 }
 
 // Vue tableau de chaque graphique (accessibilité, lecture exacte des valeurs).
-export function DataTable({ head, rows }: { head: string[]; rows: (string | number)[][] }) {
+export function DataTable({ head, rows }: { head: React.ReactNode[]; rows: (string | number)[][] }) {
   return (
     <details className="group text-[13px]">
       <summary className="cursor-pointer list-none text-xs font-semibold text-link hover:underline">
@@ -46,7 +46,7 @@ export function DataTable({ head, rows }: { head: string[]; rows: (string | numb
         <TableHeader>
           <TableRow>
             {head.map((h, i) => (
-              <TableHead key={h} className={cn("h-8 text-xs font-semibold", i > 0 && "text-right")}>
+              <TableHead key={i} className={cn("h-8 text-xs font-semibold", i > 0 && "text-right")}>
                 {h}
               </TableHead>
             ))}

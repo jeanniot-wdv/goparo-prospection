@@ -13,6 +13,8 @@ const buttonVariants = cva(
           "border-border bg-background text-foreground hover:bg-muted aria-expanded:bg-muted",
         secondary:
           "border-border bg-secondary text-secondary-foreground hover:bg-muted aria-expanded:bg-muted",
+        accent:
+          "border-transparent bg-accent text-accent-foreground hover:bg-accent/70",
         ghost:
           "text-muted-foreground hover:bg-muted hover:text-foreground aria-expanded:bg-muted",
         destructive:

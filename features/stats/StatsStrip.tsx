@@ -23,7 +23,7 @@ export function StatsStrip({ live, error }: { live: LiveStats | null; error: str
   if (error) return <p className="text-xs text-destructive">Statistiques indisponibles</p>;
   if (!live) {
     return (
-      <div className="flex flex-col gap-3 rounded-md border bg-card p-3" aria-busy>
+      <div className="flex flex-col gap-3 rounded-md border bg-muted/40 p-3" aria-busy>
         <Skeleton className="h-3 w-2/5" />
         <Skeleton className="h-2 w-full" />
         <Skeleton className="h-7 w-4/5" />
@@ -31,7 +31,7 @@ export function StatsStrip({ live, error }: { live: LiveStats | null; error: str
     );
   }
   return (
-    <div className="flex flex-col gap-3 rounded-md border bg-card p-3">
+    <div className="flex flex-col gap-3 rounded-md border bg-muted/40 p-3">
       <div className="flex items-center justify-between gap-2 text-xs">
         <span className="font-semibold">Progression globale</span>
         <span className="font-semibold tabular-nums text-success">{pct(live.traites / Math.max(1, live.total))}</span>
