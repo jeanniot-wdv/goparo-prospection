@@ -15,7 +15,7 @@ métadonnées se replient sur mobile et les sorties sont annoncées par Sonner.
 - Filtres département (67 / 57 / 54), segment, franchises, enseigne (désactivé par défaut),
   recherche Nom / enseigne / commune.
 - Liens de recherche (Google, Maps, annuaire-entreprises, PagesJaunes) + « Lancer la
-  recherche IA » (copie le prompt, ouvre Google en mode IA — `udm=50`).
+  recherche IA » (copie le prompt, ouvre Google en mode IA — `udm=50` — dans un onglet nommé réutilisé à chaque clic).
 - Pastille de priorité à 3 paliers dans la file (haute / moyenne / basse).
 - Ticket enrichi : SIREN, effectif, création, NAF, dirigeant, nom légal.
 - Mise au format tél. (+33 X XX XX XX XX), email, URL.

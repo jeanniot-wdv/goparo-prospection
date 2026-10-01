@@ -58,13 +58,26 @@ export function Ticket({
   };
 
   const launchSearch = async () => {
-    window.open(buildAiSearchUrl(garage), "_blank", "noopener");
+    // Onglet nommé : chaque clic réutilise le même onglet au lieu d'en ouvrir un nouveau.
+    // Pas de « noopener » (il forcerait un nouvel onglet) : on coupe l'opener à la main.
+    const tab = window.open(buildAiSearchUrl(garage), "goparo-recherche-ia");
+    if (tab) tab.opener = null;
+    let copied = true;
     try {
       await navigator.clipboard.writeText(buildSearchPrompt(garage));
-      toast.success("Prompt copié, recherche IA ouverte");
     } catch {
-      toast("Recherche IA ouverte", { description: "Presse-papier indisponible" });
+      copied = false;
     }
+    if (!tab) {
+      // Bloqué par le navigateur : le clic sur l'action du toast est un nouveau geste utilisateur.
+      toast.error("Onglet bloqué par le navigateur", {
+        action: {
+          label: "Ouvrir",
+          onClick: () => window.open(buildAiSearchUrl(garage), "goparo-recherche-ia"),
+        },
+      });
+    } else if (copied) toast.success("Prompt copié, recherche IA ouverte");
+    else toast("Recherche IA ouverte", { description: "Presse-papier indisponible" });
   };
 
   const handle: TicketHandle = {
