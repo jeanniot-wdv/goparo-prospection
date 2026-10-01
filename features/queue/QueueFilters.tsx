@@ -10,11 +10,6 @@ import { Toggle } from "@/components/ui/toggle";
 import type { QueueParams } from "@/lib/notion/filters";
 import type { Dept, Segment } from "@/lib/types";
 
-// Contrôles à l'encre : l'orange signal reste réservé à l'action principale du ticket.
-const INK =
-  "trait border-encre bg-papier data-[state=checked]:border-encre data-[state=checked]:bg-encre data-[state=checked]:text-papier";
-const RADIO_INK = "trait border-encre bg-papier data-[state=checked]:border-encre data-[state=checked]:bg-papier [&_span_span]:bg-encre";
-
 type Update = (patch: Partial<QueueParams>) => void;
 
 const SEGMENTS: { value: Segment | "all"; label: string; court: string }[] = [
@@ -33,7 +28,7 @@ const DEPTS: { value: Dept; label: string }[] = [
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="etiquette text-mute">{title}</h2>
+      <h2 className="text-xs font-semibold text-muted-foreground">{title}</h2>
       {children}
     </section>
   );
@@ -54,8 +49,8 @@ function RadioList<T extends string>({
     <RadioGroup value={value} onValueChange={(v) => onChange(v as T)} className="gap-1.5">
       {options.map((o) => (
         <div key={o.value} className="flex items-center gap-2">
-          <RadioGroupItem value={o.value} id={`${name}-${o.value}`} className={RADIO_INK} />
-          <Label htmlFor={`${name}-${o.value}`} className="text-[13px] font-medium">
+          <RadioGroupItem value={o.value} id={`${name}-${o.value}`} />
+          <Label htmlFor={`${name}-${o.value}`} className="text-sm font-normal">
             {o.label}
           </Label>
         </div>
@@ -67,18 +62,18 @@ function RadioList<T extends string>({
 function CheckRow({ id, checked, onChange, children }: { id: string; checked: boolean; onChange: (v: boolean) => void; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2">
-      <Checkbox id={id} checked={checked} onCheckedChange={(v) => onChange(v === true)} className={INK} />
-      <Label htmlFor={id} className="text-[13px] font-medium">
+      <Checkbox id={id} checked={checked} onCheckedChange={(v) => onChange(v === true)} />
+      <Label htmlFor={id} className="text-sm font-normal">
         {children}
       </Label>
     </div>
   );
 }
 
-// Colonne 1 du poste de travail (desktop) : radios et cases, pas d'interrupteurs.
+// Colonne de filtres du poste de travail.
 export function QueueFiltersPanel({ params, update }: { params: QueueParams; update: Update }) {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <Section title="Segment">
         <RadioList
           name="segment"
@@ -109,7 +104,7 @@ function Pill({ pressed, onChange, children }: { pressed: boolean; onChange: (v:
       variant="outline"
       pressed={pressed}
       onPressedChange={onChange}
-      className="shrink-0 rounded-full trait border-filet bg-papier px-3 text-[12.5px] font-semibold data-[state=on]:border-encre data-[state=on]:bg-encre data-[state=on]:text-papier"
+      className="h-10 shrink-0 rounded-full border border-border bg-card px-3 text-xs font-medium sm:h-9 data-[state=on]:border-link/30 data-[state=on]:bg-link-subtle data-[state=on]:text-link"
     >
       {children}
     </Toggle>
@@ -125,7 +120,7 @@ export function QueueFiltersPills({ params, update }: { params: QueueParams; upd
           {d.value === "all" ? "Tous dép." : d.value}
         </Pill>
       ))}
-      <span aria-hidden className="mx-1 w-px shrink-0 bg-filet" />
+      <span aria-hidden className="mx-1 w-px shrink-0 bg-border" />
       {SEGMENTS.filter((s) => s.value !== "all").map((s) => (
         <Pill
           key={s.value}
@@ -135,7 +130,7 @@ export function QueueFiltersPills({ params, update }: { params: QueueParams; upd
           {s.court}
         </Pill>
       ))}
-      <span aria-hidden className="mx-1 w-px shrink-0 bg-filet" />
+      <span aria-hidden className="mx-1 w-px shrink-0 bg-border" />
       <Pill pressed={params.hideFranchise} onChange={(hideFranchise) => update({ hideFranchise })}>
         Sans franchises
       </Pill>
@@ -158,7 +153,7 @@ export function QueueSearch({ value, onChange }: { value: string; onChange: (q: 
 
   return (
     <div className="relative">
-      <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-mute" />
+      <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
       <Input
         type="search"
         value={draft}
@@ -167,14 +162,14 @@ export function QueueSearch({ value, onChange }: { value: string; onChange: (q: 
         placeholder="Nom, enseigne, commune…"
         aria-label="Rechercher un garage"
         data-shortcut-search
-        className="h-9 trait border-encre bg-papier pl-8 font-mono text-[13px] [&::-webkit-search-cancel-button]:hidden"
+        className="h-10 bg-card pl-9 text-sm [&::-webkit-search-cancel-button]:hidden"
       />
       {draft && (
         <button
           type="button"
           onClick={() => setDraft("")}
           aria-label="Effacer la recherche"
-          className="absolute top-1/2 right-2 -translate-y-1/2 text-mute hover:text-encre"
+          className="absolute top-1/2 right-2 flex size-8 items-center justify-center rounded-md -translate-y-1/2 text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           <XIcon className="size-3.5" />
         </button>

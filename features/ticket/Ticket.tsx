@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { SearchIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -8,16 +8,11 @@ import { Kbd } from "@/components/ui/kbd";
 import { availableExits, resolveExit, type ExitKind, type Saisie } from "@/lib/domain/prospection-rules";
 import { buildAiSearchUrl, buildSearchPrompt } from "@/lib/domain/search-links";
 import type { Garage, UpdateGaragePayload } from "@/lib/types";
-import { ExitBar } from "./ExitBar";
-import { HoldButton } from "./HoldButton";
+import { CloseGarageAction, ExitBar } from "./ExitBar";
 import { SearchLinks } from "./SearchLinks";
 import { Slot } from "./Slot";
-import { Stamp } from "./Stamp";
 import { TicketHeader } from "./TicketHeader";
 import { useTicket, type SlotKey } from "./useTicket";
-
-// Durée pendant laquelle le tampon reste visible avant que le ticket ne quitte la file.
-const STAMP_MS = 650;
 
 export interface TicketHandle {
   launchSearch: () => void;
@@ -46,17 +41,13 @@ export function Ticket({
   initialSaisie?: Saisie;
 }) {
   const { state, dispatch, fiche } = useTicket(garage, initialSaisie);
-  const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => () => {
-    if (exitTimer.current) clearTimeout(exitTimer.current);
-  }, []);
 
   const exit = (kind: ExitKind) => {
     if (state.exiting) return;
     const payload = resolveExit(kind, fiche);
     if (kind === "passer") return onExit(kind, payload);
     dispatch({ type: "exit", kind });
-    exitTimer.current = setTimeout(() => onExit(kind, payload), STAMP_MS);
+    onExit(kind, payload);
   };
 
   const terminer = () => {
@@ -121,13 +112,26 @@ export function Ticket({
   });
 
   return (
-    <div className="relative flex min-h-full flex-col">
+    <div className="flex min-h-full flex-col">
       <article
-        className={`relative mx-auto flex w-full max-w-3xl flex-1 flex-col gap-7 px-4 py-5 lg:px-10 lg:py-8 ${state.exiting ? "animate-sortie [animation-delay:450ms]" : ""}`}
+        className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-5 sm:px-6 lg:gap-7 lg:px-8 lg:py-7"
       >
         <TicketHeader garage={garage} number={number} toolbar={toolbar} />
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-3 rounded-md border bg-card p-4">
+          <div>
+            <h2 className="text-sm font-semibold">Rechercher les coordonnées</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Le prompt est copié et la recherche s’ouvre dans un nouvel onglet.</p>
+          </div>
+          <Button size="xl" onClick={launchSearch} disabled={Boolean(state.exiting)} className="w-full">
+            <SearchIcon className="size-4" />
+            Lancer la recherche IA
+            <Kbd className="ml-1 bg-primary-foreground/15 text-primary-foreground">C</Kbd>
+          </Button>
+          <SearchLinks garage={garage} />
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
           <Slot
             label="Tél."
             shortcut="T"
@@ -155,22 +159,9 @@ export function Ticket({
           />
         </div>
 
-        <div className="flex flex-col gap-3">
-          <Button size="xl" onClick={launchSearch} disabled={Boolean(state.exiting)} className="w-full">
-            <SearchIcon className="size-5" strokeWidth={2.5} />
-            Lancer la recherche IA
-            <Kbd className="ml-1 bg-encre/10 text-encre/70">C</Kbd>
-          </Button>
-          <SearchLinks garage={garage} />
+        <div className="mt-auto flex justify-start pt-2 lg:hidden">
+          <CloseGarageAction onClose={() => exit("ferme")} disabled={Boolean(state.exiting)} compact />
         </div>
-
-        <div className="mt-auto flex justify-center pt-2 lg:hidden">
-          <HoldButton onComplete={() => exit("ferme")} disabled={Boolean(state.exiting)}>
-            Fermé définitivement <span className="font-normal text-mute">(maintenir)</span>
-          </HoldButton>
-        </div>
-
-        {state.exiting && <Stamp kind={state.exiting} />}
       </article>
 
       <ExitBar

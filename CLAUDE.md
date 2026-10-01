@@ -26,8 +26,9 @@ Outil interne : compléter à la main les coordonnées des garages de la base No
   Source : `lib/domain/prospection-rules.ts` (+ tests).
 - Next 16 : lire `node_modules/next/dist/docs/` avant d'utiliser une API ; `revalidateTag`
   prend 2 arguments.
-- UI : réutiliser les composants shadcn avant d'en écrire un ; demander avant tout choix de
-  design ouvert. Filets : `trait*`, jamais `border-trait` (cn() le supprime).
+- UI : composer les primitives shadcn/ui et Tailwind, sans nouvelle primitive
+  visuelle autonome ; demander avant tout choix de design ouvert. Vérifier les
+  thèmes clair/sombre et les petits écrans.
 - Français dans l'UI, les commentaires et les commits.
 - **Avant chaque commit** : si le changement touche l'architecture, une convention, une
   décision ou l'état du projet, mettre à jour le(s) fichier(s) `docs/*.md` concerné(s) —

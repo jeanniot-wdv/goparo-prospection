@@ -1,35 +1,18 @@
 "use client";
 
+import { useId } from "react";
 import { CheckIcon, PlusIcon, XIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Kbd } from "@/components/ui/kbd";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-/**
- * Emplacement d'une coordonnée. États :
- * - vide : pointillés, « à trouver » ;
- * - saisie : on tape directement dedans (↵ valide et met au format, Échap annule) ;
- * - rempli : trait plein bleu Goparo, valeur en mono ;
- * - existant : déjà dans Notion (file « À compléter »), non modifiable ici ;
- * - attention : clignote en orange quand le bandeau « trouvé ? » le désigne.
- */
+// Champ métier composé uniquement avec les contrôles shadcn.
 export function Slot({
-  label,
-  shortcut,
-  value,
-  existing,
-  editing,
-  draft,
-  error,
-  attention,
-  inputMode,
-  placeholder,
-  onEdit,
-  onDraft,
-  onCommit,
-  onCancel,
-  onClear,
-  className,
+  label, shortcut, value, existing, editing, draft, error, attention,
+  inputMode, placeholder, onEdit, onDraft, onCommit, onCancel, onClear, className,
 }: {
   label: string;
   shortcut: string;
@@ -48,42 +31,33 @@ export function Slot({
   onClear: () => void;
   className?: string;
 }) {
-  const legend = (
-    <span className="etiquette absolute -top-[7px] left-3 bg-ciment px-1.5 leading-none">{label}</span>
-  );
+  const id = useId();
+  const valueClass = inputMode === "tel" ? "font-mono tabular-nums" : "";
 
   if (editing) {
     return (
-      <div className={cn("relative flex flex-col gap-1", className)}>
-        <div className={cn("relative trait bg-papier px-3 pt-4 pb-2", error ? "border-alerte" : "border-encre")}>
-          {legend}
-          <Input
-            autoFocus
-            type={inputMode === "tel" ? "tel" : inputMode}
-            inputMode={inputMode}
-            autoComplete="off"
-            spellCheck={false}
-            value={draft}
-            placeholder={placeholder}
-            aria-label={label}
-            aria-invalid={Boolean(error)}
-            onChange={(e) => onDraft(e.target.value)}
-            onBlur={() => (draft.trim() ? onCommit() : onCancel())}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                onCommit();
-              } else if (e.key === "Escape") {
-                e.preventDefault();
-                e.stopPropagation();
-                onCancel();
-              }
-            }}
-            className="h-8 border-0 bg-transparent px-0 font-mono text-[15px] shadow-none focus-visible:ring-0 aria-invalid:ring-0"
-          />
-        </div>
-        <p className={cn("font-mono text-[11px]", error ? "text-alerte" : "text-mute")}>
-          {error ?? "↵ valider et mettre au format · Échap annuler"}
+      <div className={cn("flex min-w-0 flex-col gap-1.5", className)}>
+        <Label htmlFor={id} className="text-xs font-semibold">{label}</Label>
+        <Input
+          id={id}
+          autoFocus
+          type={inputMode === "tel" ? "tel" : inputMode}
+          inputMode={inputMode}
+          autoComplete="off"
+          spellCheck={false}
+          value={draft}
+          placeholder={placeholder}
+          aria-invalid={Boolean(error)}
+          onChange={(e) => onDraft(e.target.value)}
+          onBlur={() => (draft.trim() ? onCommit() : onCancel())}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") { e.preventDefault(); onCommit(); }
+            else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); onCancel(); }
+          }}
+          className={cn("h-11 sm:h-10", valueClass)}
+        />
+        <p className={cn("text-xs", error ? "text-destructive" : "text-muted-foreground")}>
+          {error ?? "Entrée pour valider · Échap pour annuler"}
         </p>
       </div>
     );
@@ -91,49 +65,43 @@ export function Slot({
 
   if (existing && !value) {
     return (
-      <div className={cn("relative trait border-marque bg-marque/5 px-3 pt-4 pb-3", className)}>
-        {legend}
-        <p className="truncate font-mono text-[15px] text-marque-fonce">{existing}</p>
-        <p className="etiquette mt-1 text-marque/80">Déjà dans Notion</p>
-      </div>
+      <Card className={cn("gap-1 border-link/30 bg-link-subtle px-3 py-3", className)}>
+        <span className="text-xs font-semibold">{label}</span>
+        <span className={cn("truncate text-sm", valueClass)} title={existing}>{existing}</span>
+        <span className="text-xs text-muted-foreground">Déjà enregistré dans Notion</span>
+      </Card>
     );
   }
 
   if (value) {
     return (
-      <div className={cn("group relative trait border-marque bg-papier", className)}>
-        {legend}
-        <button type="button" onClick={onEdit} className="flex w-full items-center gap-2 px-3 pt-4 pb-3 text-left">
-          <CheckIcon className="size-4 shrink-0 text-marque" strokeWidth={2.5} />
-          <span className="truncate font-mono text-[15px] text-marque-fonce">{value}</span>
-        </button>
-        <button
-          type="button"
-          onClick={onClear}
-          aria-label={`Effacer ${label}`}
-          className="absolute top-1/2 right-2 -translate-y-1/2 p-1 text-mute opacity-0 transition-opacity group-hover:opacity-100 hover:text-encre focus-visible:opacity-100"
-        >
-          <XIcon className="size-3.5" />
-        </button>
-      </div>
+      <Card className={cn("gap-1 px-3 py-3", className)}>
+        <span className="text-xs font-semibold">{label}</span>
+        <div className="flex min-w-0 items-center gap-2">
+          <CheckIcon className="size-4 shrink-0 text-success" aria-hidden />
+          <Button variant="link" size="sm" onClick={onEdit} className={cn("min-w-0 flex-1 justify-start overflow-hidden px-0 text-left", valueClass)} title={value}>
+            <span className="truncate">{value}</span>
+          </Button>
+          <Button variant="ghost" size="icon-sm" onClick={onClear} aria-label={`Effacer ${label}`} className="shrink-0">
+            <XIcon />
+          </Button>
+        </div>
+      </Card>
     );
   }
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="outline"
       onClick={onEdit}
-      className={cn(
-        "group relative flex items-center justify-between gap-2 trait border-dashed border-mute/80 px-3 pt-4 pb-3 text-left transition-colors hover:border-encre hover:bg-papier/60",
-        attention && "animate-clignote border-solid bg-signal/5",
-        className,
-      )}
+      className={cn("flex h-auto min-h-20 w-full flex-col items-stretch gap-2 px-3 py-3 text-left", attention && "border-attention bg-attention-subtle", className)}
     >
-      {legend}
-      <span className="flex items-center gap-1.5 font-mono text-[14px] text-mute group-hover:text-encre">
-        <PlusIcon className="size-3.5" /> à trouver
+      <span className="text-xs font-semibold">{label}</span>
+      <span className="flex items-center gap-2 text-sm font-normal text-muted-foreground">
+        <PlusIcon className="size-4" aria-hidden />
+        À trouver
+        <Kbd className="ml-auto">{shortcut}</Kbd>
       </span>
-      <Kbd>{shortcut}</Kbd>
-    </button>
+    </Button>
   );
 }

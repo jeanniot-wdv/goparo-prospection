@@ -21,7 +21,7 @@ export interface TicketState {
   error: string | null;
   // Bandeau « Email / Téléphone trouvé ? » (remplace les anciennes fenêtres).
   ask: "email" | "telephone" | null;
-  // Sortie en cours : le tampon est posé, le ticket va quitter la file.
+  // Sortie lancée : les interactions sont gelées jusqu'au changement de fiche.
   exiting: ExitKind | null;
 }
 

@@ -57,16 +57,16 @@ côté serveur (routes API), jamais exposée au navigateur.
 (statut fermé, Pas intéressé, deux cases cochées). Rien n'est archivé ni supprimé.
 
 ## 9. shadcn/ui, preset Lyra
-**Décision** : composants shadcn/ui (Radix, preset Lyra : coins carrés, pensé pour le mono),
-tokens mappés sur la palette « Ticket d'atelier ». Composant maison seulement quand shadcn n'a
-pas d'équivalent (`HoldButton`, `Stamp`, `Slot`).
-**Conséquences** : les fichiers de `components/ui` sont à nous et peuvent être retouchés
-(ex. `button.tsx` : filet 1,5 px, taille `xl`). `cn` vient du paquet `cn` (shadcn).
+**Décision initiale** : composants shadcn/ui (Radix, preset Lyra), complétés alors
+par des composants métier. Leurs fichiers dans `components/ui` nous appartiennent
+et peuvent être adaptés. `cn` vient du paquet `cn` (shadcn).
+**Évolution** : la refonte visuelle et l'abandon des anciens composants de tampon
+et d'appui long sont décrits dans l'ADR 12.
 
 ## 10. Graphiques : shadcn Chart (Recharts)
 **Contexte** : le plan initial prévoyait du SVG maison ; la règle « shadcn d'abord » a primé.
-**Décision** : shadcn Chart. Palette validée par le script de la skill dataviz (bleu Goparo /
-orange signal, ΔE CVD 19,4). Chaque graphique a sa vue tableau.
+**Décision** : shadcn Chart. Chaque graphique a sa vue tableau. Les couleurs des
+séries suivent les tokens des thèmes (ADR 12).
 **Conséquences** : dépendance `recharts`, chargée uniquement sur `/atelier`.
 
 ## 11. Automatisation n8n : même traçabilité que l'app, file dédiée pour le RGPD
@@ -88,3 +88,16 @@ personne (`parOperateur`, `aujourdhuiParOperateur`) et le graphique d'activité 
 distinguent Hiba, Romain et Automatisation (couleur neutre `mute`, pas une des deux couleurs
 réservées aux personnes). Aucun verrou entre l'app et le workflow : le risque de collision
 reste écarté par le filtre `traite_le` et l'horaire (7h).
+
+## 12. Refonte visuelle inspirée de Primer
+**Contexte** : le système « Ticket d'atelier » ne correspond plus à la direction
+visuelle demandée. La recherche IA doit rester l'action principale, et le poste
+doit rester efficace sur téléphone.
+**Décision** : reprendre les rôles visuels Primer (bleu liens/focus, vert action
+principale, bordures fines, police système, cartes arrondies) avec thèmes clair
+et sombre. La recherche IA reste verte ; « Terminer » est secondaire. Sur mobile,
+la recherche précède les champs et les métadonnées sont repliables. Les sorties
+s'affichent via Sonner ; `AlertDialog` confirme la fermeture.
+**Conséquences** : `Stamp` et `HoldButton` sont supprimés. Les composants métier
+composent les primitives shadcn ; aucune nouvelle primitive visuelle autonome.
+La sémantique des sorties et le délai d'annulation de 5 s restent identiques.

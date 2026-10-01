@@ -36,12 +36,12 @@ export function ProgressByDept({ stats }: { stats: Stats }) {
           <XAxis type="number" tickLine={false} axisLine={false} tickFormatter={(v) => nf.format(v)} />
           <YAxis type="category" dataKey="nom" width={124} tickLine={false} axisLine={false} className="font-mono" />
           <ChartTooltip
-            cursor={{ fill: "var(--color-voile)", opacity: 0.5 }}
+            cursor={{ fill: "var(--muted)", opacity: 0.5 }}
             content={<ChartTooltipContent formatter={(value, name) => `${config[name as keyof typeof config].label} : ${nf.format(Number(value))}`} />}
           />
           <ChartLegend content={<ChartLegendContent />} />
-          <Bar dataKey="traites" stackId="d" fill="var(--color-traites)" stroke="var(--color-papier)" strokeWidth={2} />
-          <Bar dataKey="restant" stackId="d" fill="var(--color-restant)" stroke="var(--color-papier)" strokeWidth={2}>
+          <Bar dataKey="traites" stackId="d" fill="var(--color-traites)" stroke="var(--card)" strokeWidth={2} />
+          <Bar dataKey="restant" stackId="d" fill="var(--color-restant)" stroke="var(--card)" strokeWidth={2}>
             <LabelList dataKey="taux" position="right" className="fill-foreground font-mono" fontSize={11} />
           </Bar>
         </BarChart>

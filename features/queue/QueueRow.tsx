@@ -1,42 +1,14 @@
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { priorityTier } from "@/lib/domain/priority";
 import { getNomAffiche } from "@/lib/domain/search-links";
 import type { Garage } from "@/lib/types";
 
-// Ordinal (3 paliers) sur les tons neutres du système : plein encre = haute,
-// voile = moyenne, contour mute = basse. Pas de teinte, pour ne pas entrer en
-// conflit avec le bleu (données trouvées) ni l'orange (action principale).
-const TIER_CLASSES = {
-  haute: "border-encre bg-encre text-papier",
-  moyenne: "border-filet bg-voile text-encre",
-  basse: "border-filet text-mute",
-} as const;
-
-// Jauge 3 segments : tél. / email / site. Plein bleu Goparo = donnée connue.
-export function Gauge({ garage, className }: { garage: Garage; className?: string }) {
-  const parts = [
-    { label: "tél.", on: Boolean(garage.telephone) },
-    { label: "email", on: Boolean(garage.email) },
-    { label: "site", on: Boolean(garage.siteWeb) },
-  ];
-  return (
-    <span
-      className={cn("flex gap-[3px]", className)}
-      aria-label={`Connu : ${parts.filter((p) => p.on).map((p) => p.label).join(", ") || "rien"}`}
-    >
-      {parts.map((p) => (
-        <span key={p.label} className={cn("h-3 w-[7px] trait", p.on ? "border-marque bg-marque" : "border-mute/70")} />
-      ))}
-    </span>
-  );
-}
+const PRIORITY_LABELS = { haute: "Haute", moyenne: "Moyenne", basse: "Basse" } as const;
 
 export function QueueRow({
-  garage,
-  number,
-  active,
-  leaving,
-  onSelect,
+  garage, number, active, onSelect,
 }: {
   garage: Garage;
   number: string;
@@ -44,6 +16,9 @@ export function QueueRow({
   leaving?: boolean;
   onSelect: () => void;
 }) {
+  const known = [garage.telephone, garage.email, garage.siteWeb].filter(Boolean).length;
+  const tier = garage.scorePriorite === null ? null : priorityTier(garage.scorePriorite);
+
   return (
     <button
       type="button"
@@ -51,39 +26,35 @@ export function QueueRow({
       data-active={active}
       aria-current={active ? "true" : undefined}
       className={cn(
-        "group relative grid w-full grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-x-3 border-b border-filet py-2.5 pr-4 pl-4 text-left transition-colors hover:bg-papier/60",
-        leaving && "animate-sortie",
+        "relative grid min-h-19 w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-4 py-3 text-left transition-colors hover:bg-muted",
+        active && "bg-link-subtle hover:bg-link-subtle",
       )}
     >
-      <span
-        aria-hidden
-        className={cn("absolute inset-y-0 left-0 w-[3px] bg-signal transition-transform origin-left", active ? "scale-x-100" : "scale-x-0")}
-      />
-      <span className={cn("font-mono text-[11px] tabular-nums", active ? "text-encre" : "text-mute")}>
-        {number}
-      </span>
+      <span aria-hidden className={cn("absolute inset-y-0 left-0 w-[3px]", active && "bg-link")} />
       <span className="min-w-0">
-        <span className="block truncate font-condensed text-[15px] leading-tight font-extrabold uppercase">
+        <span className="mb-0.5 flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="font-mono tabular-nums">#{number}</span>
+          {garage.commune && <span className="truncate">{garage.commune}</span>}
+        </span>
+        <span className="block truncate text-sm font-semibold text-foreground">
           {getNomAffiche(garage) || "(sans nom)"}
         </span>
-        <span className="block truncate font-mono text-[11px] text-mute">
-          {garage.commune || "—"}
-          {garage.cp !== null && ` · ${garage.cp}`}
-        </span>
+        {garage.cp !== null && <span className="text-xs text-muted-foreground">{garage.cp}</span>}
       </span>
-      <span className="flex flex-col items-end gap-1">
-        <Gauge garage={garage} />
-        {garage.scorePriorite !== null && (
-          <span
-            className={cn(
-              "trait px-1 font-mono text-[10px] leading-[1.4] tabular-nums",
-              TIER_CLASSES[priorityTier(garage.scorePriorite)],
-            )}
-            title={`Score de priorité : ${garage.scorePriorite} (${priorityTier(garage.scorePriorite)})`}
+      <span className="flex w-20 shrink-0 flex-col items-end gap-2">
+        {tier && (
+          <Badge
+            variant="secondary"
+            title={`Score de priorité : ${garage.scorePriorite}`}
+            className={cn("border", tier === "haute" && "border-attention/30 bg-attention-subtle text-attention", tier === "basse" && "text-muted-foreground")}
           >
-            p{garage.scorePriorite}
-          </span>
+            {PRIORITY_LABELS[tier]}
+          </Badge>
         )}
+        <span className="w-full">
+          <Progress value={(known / 3) * 100} aria-label={`${known} coordonnée${known > 1 ? "s" : ""} sur 3 connue${known > 1 ? "s" : ""}`} className="h-1.5 bg-muted [&>div]:bg-success" />
+          <span className="mt-0.5 block text-right text-[11px] tabular-nums text-muted-foreground">{known}/3</span>
+        </span>
       </span>
     </button>
   );

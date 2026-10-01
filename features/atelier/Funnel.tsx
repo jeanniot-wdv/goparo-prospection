@@ -22,7 +22,7 @@ export function Funnel({ stats }: { stats: Stats }) {
           <CartesianGrid horizontal={false} stroke={GRILLE} />
           <XAxis type="number" tickLine={false} axisLine={false} allowDecimals={false} />
           <YAxis type="category" dataKey="statut" width={128} tickLine={false} axisLine={false} fontSize={11.5} />
-          <ChartTooltip cursor={{ fill: "var(--color-voile)", opacity: 0.5 }} content={<ChartTooltipContent hideLabel={false} />} />
+          <ChartTooltip cursor={{ fill: "var(--muted)", opacity: 0.5 }} content={<ChartTooltipContent hideLabel={false} />} />
           <Bar dataKey="count" fill="var(--color-count)">
             <LabelList dataKey="count" position="right" className="fill-foreground font-mono" fontSize={11} />
           </Bar>

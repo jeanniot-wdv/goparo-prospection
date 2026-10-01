@@ -23,12 +23,13 @@ import { SHORTCUT_LEGEND, useKeyboardShortcuts } from "./useKeyboardShortcuts";
 import { useIsDesktop } from "./useMediaQuery";
 import { DayCounter, StatsStrip } from "@/features/stats/StatsStrip";
 import { useStats } from "@/features/stats/useStats";
+import { ThemeToggle } from "@/features/theme/ThemeToggle";
 import type { LiveStats } from "@/lib/domain/stats";
 
 function Logo() {
   return (
-    <Link href="/" className="font-expanded text-[17px] leading-none font-black tracking-tight uppercase">
-      Goparo<span className="text-signal">.</span>
+    <Link href="/" className="text-[17px] font-semibold tracking-[-0.03em] text-foreground">
+      Goparo<span className="text-link">.</span>
     </Link>
   );
 }
@@ -131,111 +132,97 @@ export function Workspace() {
   );
 
   return (
-    <div className="grid h-dvh grid-cols-[minmax(0,1fr)] overflow-hidden lg:grid-cols-[200px_minmax(0,1fr)_minmax(0,1.3fr)]">
-      <aside className="hidden min-h-0 flex-col gap-8 overflow-y-auto trait-r border-encre px-5 py-5 lg:flex">
-        <Logo />
-        <section className="flex flex-col gap-2">
-          <h2 className="etiquette text-mute">Au poste</h2>
-          <OperatorPicker operator={operator} onChange={setOperator} />
-        </section>
-        <QueueFiltersPanel params={queue.params} update={queue.updateParams} />
-        <div className="mt-auto flex flex-col gap-5">
-          <DayCounter live={stats.live} />
-          <details className="group">
-            <summary className="etiquette cursor-pointer list-none text-mute hover:text-encre">Raccourcis ▸</summary>
-            <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 text-[11.5px]">
-              {SHORTCUT_LEGEND.map(([k, label]) => (
-                <div key={k} className="contents">
-                  <dt>
-                    <Kbd>{k}</Kbd>
-                  </dt>
-                  <dd className="text-muted-foreground">{label}</dd>
-                </div>
-              ))}
-            </dl>
-          </details>
-          <Link href="/atelier" className="etiquette text-mute hover:text-encre">
-            Atelier →
-          </Link>
+    <div className="flex h-dvh flex-col overflow-hidden bg-background">
+      <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b bg-card px-4 sm:px-5">
+        <div className="flex min-w-0 items-center gap-3">
+          <Logo />
+          <span className="hidden border-l pl-3 text-sm text-muted-foreground sm:inline">Prospection</span>
         </div>
-      </aside>
+        <nav aria-label="Navigation principale" className="flex items-center gap-1 sm:gap-2">
+          <Button asChild variant="ghost" size="sm" className="text-foreground">
+            <Link href="/atelier">Tableau de bord</Link>
+          </Button>
+          <ThemeToggle />
+          <span className="hidden lg:inline-flex">{fullscreenButton}</span>
+        </nav>
+      </header>
 
-      <section
-        className={cn("flex min-h-0 flex-col lg:trait-r lg:border-encre", ticketOpen && !isDesktop && "hidden")}
-        aria-label="File de garages"
-      >
-        <div className="flex min-w-0 flex-col gap-3 trait-b border-encre px-4 pt-4 pb-3">
-          <div className="flex items-center justify-between gap-3 lg:hidden">
-            <Logo />
-            <div className="w-36">
-              <OperatorPicker operator={operator} onChange={setOperator} />
+      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[220px_minmax(320px,0.9fr)_minmax(0,1.3fr)]">
+        <aside className="hidden min-h-0 flex-col gap-6 overflow-y-auto border-r bg-sidebar px-4 py-5 lg:flex">
+          <section className="flex flex-col gap-2">
+            <h2 className="text-xs font-semibold text-muted-foreground">Qui travaille ?</h2>
+            <OperatorPicker operator={operator} onChange={setOperator} />
+          </section>
+          <QueueFiltersPanel params={queue.params} update={queue.updateParams} />
+          <div className="mt-auto flex flex-col gap-5 border-t pt-5">
+            <DayCounter live={stats.live} />
+            <details className="group">
+              <summary className="cursor-pointer text-xs font-semibold text-muted-foreground hover:text-foreground">Raccourcis clavier</summary>
+              <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5 text-xs">
+                {SHORTCUT_LEGEND.map(([k, label]) => (
+                  <div key={k} className="contents">
+                    <dt><Kbd>{k}</Kbd></dt>
+                    <dd className="text-muted-foreground">{label}</dd>
+                  </div>
+                ))}
+              </dl>
+            </details>
+          </div>
+        </aside>
+
+        <section
+          className={cn("flex min-h-0 flex-col border-r bg-background", ticketOpen && !isDesktop && "hidden")}
+          aria-label="File de garages"
+        >
+          <div className="flex min-w-0 flex-col gap-4 border-b px-4 py-4">
+            <div className="flex items-center justify-between gap-3 lg:hidden">
+              <h1 className="text-base font-semibold">File de prospection</h1>
+              <div className="w-36 shrink-0"><OperatorPicker operator={operator} onChange={setOperator} /></div>
             </div>
-            <Link href="/atelier" className="etiquette text-mute">
-              Atelier →
-            </Link>
+            <StatsStrip live={stats.live} error={stats.error} />
+            <Tabs value={queue.params.queue} onValueChange={(v) => queue.updateParams({ queue: v as Queue })} className="min-w-0">
+              <TabsList
+                variant="line"
+                className="w-full min-w-0 touch-pan-x justify-start gap-4 overflow-x-auto overflow-y-hidden border-b p-0 pb-[5px] [scrollbar-width:none] group-data-horizontal/tabs:h-11 sm:group-data-horizontal/tabs:h-[38px]"
+              >
+                {QUEUES.map((q) => (
+                  <TabsTrigger key={q.value} value={q.value} className="flex-none px-1 text-sm font-medium">
+                    {q.label}
+                    {stats.live && <span className="rounded-full bg-muted px-1.5 text-xs tabular-nums text-muted-foreground">{queueCount(stats.live, q.value)}</span>}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+            <QueueSearch value={queue.params.q} onChange={(q) => queue.updateParams({ q })} />
+            <div className="lg:hidden"><QueueFiltersPills params={queue.params} update={queue.updateParams} /></div>
           </div>
-          <StatsStrip live={stats.live} error={stats.error} />
-          <Tabs value={queue.params.queue} onValueChange={(v) => queue.updateParams({ queue: v as Queue })} className="min-w-0">
-            <TabsList
-              variant="line"
-              className="w-full min-w-0 touch-pan-x justify-start gap-4 overflow-x-auto overflow-y-hidden p-0 pb-[5px] [scrollbar-width:none] group-data-horizontal/tabs:h-[37px]"
-            >
-              {QUEUES.map((q) => (
-                <TabsTrigger
-                  key={q.value}
-                  value={q.value}
-                  className="flex-none px-0 font-expanded text-[13px] font-extrabold tracking-wide uppercase"
-                >
-                  {q.label}
-                  {stats.live && (
-                    <span className="font-mono text-[11px] font-medium text-mute tabular-nums">
-                      {queueCount(stats.live, q.value)}
-                    </span>
-                  )}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-          <QueueSearch value={queue.params.q} onChange={(q) => queue.updateParams({ q })} />
-          <div className="lg:hidden">
-            <QueueFiltersPills params={queue.params} update={queue.updateParams} />
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            <QueueList queue={queue} selectedId={garage?.id ?? null} onSelect={setSelectedId} />
           </div>
-        </div>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-          <QueueList queue={queue} selectedId={garage?.id ?? null} onSelect={setSelectedId} />
-        </div>
-      </section>
+        </section>
 
-      <main
-        className={cn("min-h-0 overflow-y-auto bg-ciment", !ticketOpen && "hidden lg:block")}
-        aria-label="Ticket"
-      >
-        {garage ? (
-          <Ticket
-            key={garage.id}
-            garage={garage}
-            number={queue.numberOf(garage.id)}
-            onExit={handleExit}
-            handleRef={ticketRef}
-            initialSaisie={restored?.id === garage.id ? restored.saisie : undefined}
-            toolbar={
-              isDesktop ? (
-                fullscreenButton
-              ) : (
+        <main className={cn("min-h-0 overflow-y-auto bg-inset", !ticketOpen && "hidden lg:block")} aria-label="Fiche garage">
+          {garage ? (
+            <Ticket
+              key={garage.id}
+              garage={garage}
+              number={queue.numberOf(garage.id)}
+              onExit={handleExit}
+              handleRef={ticketRef}
+              initialSaisie={restored?.id === garage.id ? restored.saisie : undefined}
+              toolbar={isDesktop ? fullscreenButton : (
                 <Button variant="ghost" size="sm" onClick={() => setSelectedId(null)}>
                   <ChevronLeftIcon /> Liste
                 </Button>
-              )
-            }
-          />
-        ) : (
-          <div className="hachures flex h-full items-center justify-center p-10">
-            <p className="font-expanded text-xl font-black text-mute uppercase">
-              {queue.loading ? "Chargement…" : "Aucun ticket"}
-            </p>
-          </div>
-        )}
-      </main>
+              )}
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center p-8">
+              <p className="text-sm text-muted-foreground">{queue.loading ? "Chargement…" : "Sélectionnez un garage dans la file."}</p>
+            </div>
+          )}
+        </main>
+      </div>
 
       {ready && operator === null && <OperatorGate onChange={setOperator} />}
     </div>

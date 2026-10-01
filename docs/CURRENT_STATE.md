@@ -1,11 +1,13 @@
 # État actuel
 
-_Mis à jour le 2026-09-27._
+_Mis à jour le 2026-10-01._
 
 ## Fait
 
-**Refonte « Ticket d'atelier »** : poste de travail plein écran 3 colonnes (desktop) et
-parcours mobile au pouce, sur shadcn/ui (Lyra).
+**Refonte visuelle inspirée de Primer** : poste de travail plein écran 3 colonnes
+(desktop), parcours mobile liste → fiche, thèmes clair/sombre, composants
+shadcn/ui (Lyra) adaptés. La recherche IA reste l'action principale ; les
+métadonnées se replient sur mobile et les sorties sont annoncées par Sonner.
 
 **Lot 1**
 - Tri par priorité (formule Notion `score_priorite`).
@@ -14,14 +16,12 @@ parcours mobile au pouce, sur shadcn/ui (Lyra).
   recherche Nom / enseigne / commune.
 - Liens de recherche (Google, Maps, annuaire-entreprises, PagesJaunes) + « Lancer la
   recherche IA » (copie le prompt, ouvre Google en mode IA — `udm=50`).
-- Pastille de priorité à 3 paliers dans la file (haute / moyenne / basse), sur les tons
-  neutres du système.
+- Pastille de priorité à 3 paliers dans la file (haute / moyenne / basse).
 - Ticket enrichi : SIREN, effectif, création, NAF, dirigeant, nom légal.
 - Mise au format tél. (+33 X XX XX XX XX), email, URL.
 - Annulation 5 s (écriture différée).
 - Bandeau de stats (traités, restant, taux, rythme, fin estimée), compteur du jour.
-- Texte « Fermé » corrigé (plus de mention de corbeille) ; confirmation remplacée par
-  l'appui long.
+- « Marquer fermé » passe par un dialogue de confirmation.
 
 **Lot 2**
 - Traçabilité `traite_le` / `traite_par` (Hiba, Romain), migration appliquée le 2026-09-27.

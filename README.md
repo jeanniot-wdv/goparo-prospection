@@ -1,8 +1,8 @@
 # Goparo Prospection
 
 Outil interne pour compléter à la main les coordonnées (téléphone, email, site) des garages
-de la base Notion « Grand Est ». Chaque garage est un ticket : on cherche,
-on saisit, on tamponne, on passe au suivant. Une page **Atelier** suit l'avancement de l'équipe.
+de la base Notion « Grand Est ». On recherche les coordonnées, on les saisit
+puis on passe au garage suivant. Un **tableau de bord** suit l'avancement de l'équipe.
 
 Next.js 16 · React 19 · Tailwind 4 · shadcn/ui · API Notion. Pas de base de données :
 Notion est la source de vérité.
@@ -56,10 +56,11 @@ exposer l'URL publiquement.
 ## Utilisation
 
 1. Choisir qui est au poste (Hiba ou Romain) : le nom est enregistré avec chaque fiche traitée.
-2. Choisir une file (Nouveaux ou À compléter) et filtrer si besoin.
-3. Sur le ticket : **Lancer la recherche IA** (C, ouvre Google en mode IA), saisir tél. / email / site (T / E / W),
-   puis **Terminer** (⌘↵), **Rien trouvé** (N), **Passer** (P) ou **Fermé** (appui long).
+2. Choisir une file (Nouveaux, À compléter ou RGPD) et filtrer si besoin.
+3. Sur la fiche : **Lancer la recherche IA** (C, ouvre Google en mode IA), saisir tél. / email / site (T / E / W),
+   puis **Terminer** (⌘↵), **Rien trouvé** (N), **Passer** (P) ou **Marquer fermé** (confirmation).
 4. Chaque sortie peut être annulée pendant 5 s (U).
+5. Le thème initial suit le système ; le bouton d'en-tête permet de passer du clair au sombre.
 
 ## Documentation
 

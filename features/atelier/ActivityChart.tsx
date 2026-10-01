@@ -23,17 +23,17 @@ export function ActivityChart({ stats }: { stats: Stats }) {
 
   return (
     <Panel title="Activité">
-      <div className="flex flex-wrap gap-x-6 gap-y-1 font-mono text-[12px]">
+      <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs tabular-nums">
         <span>
-          <span className="text-mute">À compléter</span> {nf.format(stats.aCompleter)}
+          <span className="text-muted-foreground">À compléter</span> {nf.format(stats.aCompleter)}
         </span>
         {TRAITE_PAR_VALUES.map((o) => (
           <span key={o}>
-            <span className="text-mute">{o}</span> {nf.format(stats.parOperateur[o])}
+            <span className="text-muted-foreground">{o}</span> {nf.format(stats.parOperateur[o])}
           </span>
         ))}
         <span>
-          <span className="text-mute">Rythme</span> {stats.rythme ? `${Math.round(stats.rythme)}/jour` : "—"}
+          <span className="text-muted-foreground">Rythme</span> {stats.rythme ? `${Math.round(stats.rythme)}/jour` : "—"}
         </span>
       </div>
       {rows.length === 0 ? (
@@ -44,10 +44,10 @@ export function ActivityChart({ stats }: { stats: Stats }) {
             <CartesianGrid vertical={false} stroke={GRILLE} />
             <XAxis dataKey="jour" tickLine={false} axisLine={false} fontSize={11} minTickGap={16} />
             <YAxis tickLine={false} axisLine={false} allowDecimals={false} width={32} />
-            <ChartTooltip cursor={{ fill: "var(--color-voile)", opacity: 0.5 }} content={<ChartTooltipContent />} />
+            <ChartTooltip cursor={{ fill: "var(--muted)", opacity: 0.5 }} content={<ChartTooltipContent />} />
             <ChartLegend content={<ChartLegendContent />} />
             {TRAITE_PAR_VALUES.map((o) => (
-              <Bar key={o} dataKey={o} stackId="j" fill={`var(--color-${o})`} stroke="var(--color-papier)" strokeWidth={2} />
+              <Bar key={o} dataKey={o} stackId="j" fill={`var(--color-${o})`} stroke="var(--card)" strokeWidth={2} />
             ))}
           </BarChart>
         </ChartContainer>
