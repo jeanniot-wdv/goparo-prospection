@@ -43,10 +43,11 @@ scripts/notion-migrate.mjs  ajoute traite_le / traite_par / score_priorite (idem
 liste déclenche la page suivante.
 
 **Sortie d'un ticket** :
-1. `Ticket` calcule le PATCH avec `resolveExit(kind, fiche)` et pose le tampon (650 ms).
+1. `Ticket` calcule le PATCH avec `resolveExit(kind, fiche)` ; la fiche suivante
+   s'affiche immédiatement.
 2. `Workspace` passe à la fiche suivante. Elle est retirée de la file (optimiste) pour
    toute sortie qui la clôt ; **« passer » la laisse en place**, puisqu'elle reste à traiter.
-3. `usePendingCommits` attend **5 s** (toast « Annuler ») puis envoie
+3. `usePendingCommits` attend **5 s** (toast Sonner « Annuler ») puis envoie
    `PATCH /api/garages/{id}` avec `operator` (ou `DELETE` pour « fermé »).
    « Annuler » ne touche pas Notion : la fiche et sa saisie reviennent dans la file.
    Au `pagehide`, tout ce qui attend part immédiatement en `fetch(…, { keepalive: true })`.
@@ -143,13 +144,13 @@ Aucun verrou entre l'app et ce workflow : le risque de collision est limité par
 
 ## Sorties de fiche → propriétés
 
-| Sortie | Quand | Propriétés écrites (+ `traite_le`, `traite_par`) | Tampon |
+| Sortie | Quand | Propriétés écrites (+ `traite_le`, `traite_par`) | Toast |
 |---|---|---|---|
-| Terminer (`complet`) | tél. et email connus | saisie + Email_type Pro, Statut inconnu, Confiance haute, **À prospecter** | ENRICHI |
-| Email introuvable | tél. seul, « Email trouvé ? » → Non | saisie + `email_non_trouve`, Email_type Inconnu, **À enrichir** | À ENRICHIR |
-| Tél. introuvable | email seul, « Téléphone trouvé ? » → Non | saisie + `tel_non_trouve`, **À prospecter** | ENRICHI |
-| Rien trouvé (`aucune`) | rien trouvé | les deux cases, **À enrichir** | À ENRICHIR |
-| Fermé | appui long 1,2 s | Statut fermé, **Pas intéressé**, les deux cases | FERMÉ |
+| Terminer (`complet`) | tél. et email connus | saisie + Email_type Pro, Statut inconnu, Confiance haute, **À prospecter** | Enrichi |
+| Email introuvable | tél. seul, « Email trouvé ? » → Non | saisie + `email_non_trouve`, Email_type Inconnu, **À enrichir** | À enrichir |
+| Tél. introuvable | email seul, « Téléphone trouvé ? » → Non | saisie + `tel_non_trouve`, **À prospecter** | Enrichi |
+| Rien trouvé (`aucune`) | rien trouvé | les deux cases, **À enrichir** | À enrichir |
+| Fermé | confirmation `AlertDialog` | Statut fermé, **Pas intéressé**, les deux cases | Fermé |
 | Passer | — | site web seul s'il a été saisi, **sans** traçabilité | — |
 
 « Oui, je le saisis » ne sort pas : le bandeau se ferme et l'emplacement manquant s'ouvre.

@@ -41,13 +41,12 @@ export function QueueList({
     return (
       <div className="flex flex-col" aria-busy>
         {Array.from({ length: 8 }, (_, i) => (
-          <div key={i} className="grid grid-cols-[2.75rem_1fr_auto] items-center gap-3 border-b border-filet px-4 py-3">
-            <Skeleton className="h-3 w-8" />
+          <div key={i} className="grid grid-cols-[1fr_auto] items-center gap-3 border-b px-4 py-4">
             <div className="space-y-1.5">
               <Skeleton className="h-3.5 w-2/3" />
               <Skeleton className="h-2.5 w-1/3" />
             </div>
-            <Skeleton className="h-3 w-7" />
+            <Skeleton className="h-6 w-16" />
           </div>
         ))}
       </div>
@@ -68,8 +67,8 @@ export function QueueList({
       )}
 
       {queue.garages.length === 0 && !queue.error ? (
-        <div className="hachures m-4 flex flex-col items-center gap-1 trait border-dashed border-filet px-6 py-12 text-center">
-          <p className="font-expanded text-lg font-black uppercase">File vide</p>
+        <div className="m-4 flex flex-col items-center gap-2 rounded-md border bg-muted/40 px-6 py-12 text-center">
+          <p className="text-base font-semibold">File vide</p>
           <p className="text-sm text-muted-foreground">Aucun garage ne correspond à ces filtres.</p>
         </div>
       ) : (
@@ -87,10 +86,10 @@ export function QueueList({
         </ol>
       )}
 
-      <div ref={sentinel} className="flex h-14 items-center justify-center text-mute">
+      <div ref={sentinel} className="flex h-14 items-center justify-center text-muted-foreground">
         {queue.loadingMore && <Spinner />}
         {!queue.hasMore && queue.garages.length > 0 && (
-          <span className="etiquette text-mute">Fin de la file</span>
+          <span className="text-xs text-muted-foreground">Fin de la file</span>
         )}
       </div>
     </div>

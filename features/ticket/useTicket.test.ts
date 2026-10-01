@@ -24,7 +24,7 @@ describe("ticketReducer", () => {
     expect(s.ask).toBeNull();
     expect(s.editing).toBe("email");
   });
-  it("gèle le ticket une fois tamponné", () => {
+  it("gèle la fiche dès que sa sortie est lancée", () => {
     const s = ticketReducer(initial, { type: "exit", kind: "aucune" });
     expect(ticketReducer(s, { type: "edit", slot: "email" })).toBe(s);
   });

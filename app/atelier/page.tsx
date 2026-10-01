@@ -3,6 +3,8 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/features/theme/ThemeToggle";
 import { ActivityChart } from "@/features/atelier/ActivityChart";
 import { DataQuality } from "@/features/atelier/DataQuality";
 import { Funnel } from "@/features/atelier/Funnel";
@@ -26,10 +28,10 @@ async function Dashboard() {
 
   return (
     <>
-      <p className="font-mono text-[12px] text-mute">
+      <p className="text-xs text-muted-foreground">
         Calculé à {heure(stats.generatedAt)} · mis en cache 10 min, rafraîchi après chaque fiche traitée
       </p>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
         <StatTile label="Fiches" value={nf.format(stats.total)} hint="base Grand Est" />
         <StatTile
           label="Traitées"
@@ -59,8 +61,8 @@ async function Dashboard() {
 function DashboardSkeleton() {
   return (
     <div className="flex flex-col gap-4" aria-busy>
-      <p className="font-mono text-[12px] text-mute">Lecture des 4 000 fiches Notion… (jusqu&apos;à 30 s au premier chargement)</p>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+      <p className="text-xs text-muted-foreground">Lecture des statistiques Notion…</p>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
         {Array.from({ length: 5 }, (_, i) => (
           <Skeleton key={i} className="h-24" />
         ))}
@@ -76,24 +78,20 @@ function DashboardSkeleton() {
 // Tableau de bord Lot 2 : avancement, réussite, activité de l'équipe, qualité des données.
 export default function AtelierPage() {
   return (
-    <div className="h-dvh overflow-y-auto">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 lg:px-8 lg:py-8">
-        <header className="flex flex-wrap items-end justify-between gap-4 trait-b border-encre pb-4">
-          <div>
-            <Link href="/" className="etiquette text-mute hover:text-encre">
-              ← Poste de travail
-            </Link>
-            <h1 className="mt-2 font-expanded text-[clamp(2.4rem,6vw,4.5rem)] leading-[0.85] font-black uppercase">
-              Atelier<span className="text-signal">.</span>
-            </h1>
-          </div>
-          <p className="max-w-sm text-[13px] text-muted-foreground">
-            Où en est la base, qui a traité quoi, et ce qu&apos;il faudrait corriger dans Notion.
-          </p>
-        </header>
-        <Suspense fallback={<DashboardSkeleton />}>
-          <Dashboard />
-        </Suspense>
+    <div className="min-h-dvh bg-inset">
+      <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-card px-4 sm:px-6">
+        <Link href="/" className="text-[17px] font-semibold tracking-[-0.03em] text-foreground">Goparo<span className="text-link">.</span></Link>
+        <div className="flex items-center gap-1">
+          <Button asChild variant="ghost" size="sm" className="text-foreground"><Link href="/">Poste de travail</Link></Button>
+          <ThemeToggle />
+        </div>
+      </header>
+      <div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-5 sm:gap-6 sm:px-6 lg:px-8 lg:py-8">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-semibold tracking-[-0.02em] sm:text-3xl">Tableau de bord</h1>
+          <p className="text-sm text-muted-foreground">Progression, activité et qualité des données de prospection.</p>
+        </div>
+        <Suspense fallback={<DashboardSkeleton />}><Dashboard /></Suspense>
       </div>
     </div>
   );

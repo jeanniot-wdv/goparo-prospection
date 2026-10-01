@@ -1,22 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
-import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-
-// Archivo variable avec l'axe de largeur : titres en Expanded Black, UI en normal.
-const archivo = Archivo({
-  variable: "--font-archivo",
-  subsets: ["latin"],
-  axes: ["wdth"],
-});
-
-// Toutes les données (tél., emails, CP, n° de ticket) sont en mono.
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Goparo Prospection",
@@ -28,23 +14,31 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#edeae4",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0d1117" },
+  ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fr" className={cn("h-full antialiased", archivo.variable, geistMono.variable)}>
-      <body className="h-full bg-ciment text-encre">
+    <html lang="fr" className="h-full antialiased" suppressHydrationWarning>
+      <body className="h-full bg-background text-foreground">
+        <Script id="goparo-theme" strategy="beforeInteractive">{`try {
+          const saved = localStorage.getItem("goparo-theme");
+          const dark = saved === "dark" || (!saved && matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.classList.toggle("dark", dark);
+        } catch { document.documentElement.classList.toggle("dark", matchMedia("(prefers-color-scheme: dark)").matches); }`}</Script>
         <TooltipProvider delayDuration={400}>{children}</TooltipProvider>
         <Toaster
           position="bottom-center"
-          offset={{ bottom: 88 }}
-          mobileOffset={{ bottom: 96 }}
+          offset={{ bottom: 80 }}
+          mobileOffset={{ bottom: 88 }}
           toastOptions={{
             classNames: {
-              toast: "cn-toast !border-encre !bg-encre !text-papier !font-sans",
-              description: "!text-papier/70",
-              actionButton: "!rounded-none !bg-signal !font-semibold !text-encre",
+              toast: "cn-toast !rounded-md !border-border !bg-popover !text-popover-foreground !font-sans !text-sm",
+              description: "!text-muted-foreground",
+              actionButton: "!rounded-md !border !border-border !bg-secondary !font-semibold !text-link",
             },
           }}
         />

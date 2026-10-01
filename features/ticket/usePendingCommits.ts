@@ -17,7 +17,7 @@ export interface PendingEntry {
   payload: UpdateGaragePayload | null;
 }
 
-export const STAMP_LABELS: Partial<Record<ExitKind, string>> = {
+export const EXIT_LABELS: Partial<Record<ExitKind, string>> = {
   complet: "Enrichi",
   "tel-introuvable": "Enrichi",
   "email-introuvable": "À enrichir",
@@ -96,10 +96,13 @@ export function usePendingCommits({
       const timer = setTimeout(() => flush(key), UNDO_DELAY_MS);
       pending.current.set(key, { entry: full, timer });
       order.current.push(key);
-      const stamp = STAMP_LABELS[entry.kind];
-      toast(stamp ? `${getNomAffiche(entry.garage)} · ${stamp}` : `${getNomAffiche(entry.garage)} · site enregistré`, {
+      const label = EXIT_LABELS[entry.kind];
+      const message = label ? `${getNomAffiche(entry.garage)} · ${label}` : `${getNomAffiche(entry.garage)} · site enregistré`;
+      const notify = entry.kind === "ferme" ? toast.warning : entry.kind === "complet" || entry.kind === "tel-introuvable" ? toast.success : toast.info;
+      notify(message, {
         id: key,
         duration: UNDO_DELAY_MS,
+        description: "Annulation possible pendant 5 secondes.",
         action: { label: "Annuler (U)", onClick: () => undo(key) },
       });
     },

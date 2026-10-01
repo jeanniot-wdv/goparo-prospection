@@ -34,11 +34,13 @@
   (`export const dynamic = "force-dynamic"` ou `await connection()`).
 
 ## Style
-- Tailwind 4 : tokens dans `app/globals.css` (`@theme`). Pas de couleur en dur dans les
-  composants, sauf dans les SVG statiques (icône).
-- Filets : utilitaires `trait`, `trait-t|b|l|r` (1,5 px). **Ne pas** les nommer
-  `border-*` : `cn()` les confondrait avec une couleur de bordure et les supprimerait.
-- Pas d'ombres portées, pas d'arrondis (sauf les pastilles de filtre mobiles).
+- Tailwind 4 : tokens sémantiques dans `app/globals.css` (`@theme inline`, `:root`,
+  `.dark`). Pas de couleur en dur dans les composants, sauf SVG statiques.
+- Interface inspirée de Primer : bordures de 1 px, rayon de 6 px sur les contrôles et
+  cartes, ombres uniquement sur les couches flottantes. Bleu pour les liens et le
+  focus ; vert pour l'action principale ; rouge pour les erreurs et la fermeture.
+- Composer les primitives shadcn/ui existantes dans `features/` ; ne pas créer de
+  nouvelle primitive visuelle autonome. Tester les deux thèmes et les petits écrans.
 
 ## Tests
 - Vitest (`npm test`), limité à la logique pure : `lib/**/*.test.ts`,

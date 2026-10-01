@@ -23,60 +23,63 @@ function formatLieu(g: Garage) {
 
 function Meta({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex min-w-0 flex-col gap-0.5">
-      <dt className="etiquette text-mute">{label}</dt>
-      <dd className="truncate font-mono text-[13px]">{children || <span className="text-mute">—</span>}</dd>
+    <div className="flex min-w-0 flex-col gap-1">
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="truncate text-sm font-medium">{children || <span className="text-muted-foreground">—</span>}</dd>
     </div>
   );
 }
 
-// Haut du ticket : n°, nom en Expanded Black, localisation, puis la « souche » de métadonnées.
+// En-tête de fiche : identité d'abord, puis les données utiles à la recherche.
 export function TicketHeader({ garage, number, toolbar }: { garage: Garage; number: string; toolbar?: React.ReactNode }) {
   const annee = garage.dateCreation?.slice(0, 4);
+  const metadata = (
+    <dl className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-md border bg-card p-4 sm:grid-cols-3">
+      <Meta label="Dirigeant">{garage.dirigeant}</Meta>
+      {garage.enseigne.trim() !== "" && <Meta label="Nom légal">{garage.nom}</Meta>}
+      <Meta label="SIREN">
+        {garage.siren && (
+          <a
+            href={`https://annuaire-entreprises.data.gouv.fr/entreprise/${garage.siren}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-0.5 font-mono text-link hover:underline"
+          >
+            {formatSiren(garage.siren)}
+            <ArrowUpRightIcon className="size-3" />
+          </a>
+        )}
+      </Meta>
+      <Meta label="Effectif">{garage.effectif && EFFECTIF_LABELS[garage.effectif]}</Meta>
+      <Meta label="Création">{annee && `${annee} · ${new Date().getFullYear() - Number(annee)} ans`}</Meta>
+      <Meta label="NAF">{garage.naf && `${garage.naf} ${NAF_LABELS[garage.naf] ?? ""}`}</Meta>
+    </dl>
+  );
   return (
-    <header className="flex flex-col gap-4">
+    <header className="flex flex-col gap-3 sm:gap-5">
       <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="trait border-encre bg-encre px-1.5 py-0.5 font-mono text-[12px] leading-none text-papier">
-            N°{number}
-          </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="secondary" className="font-mono tabular-nums">#{number}</Badge>
           {garage.segment === "structure_employeuse" && <Badge variant="outline">Employeuse</Badge>}
           {garage.franchiseSuspectee === "oui" && <Badge variant="secondary">Franchise ?</Badge>}
         </div>
         {toolbar}
       </div>
 
-      <div>
-        <h1 className="font-expanded text-[clamp(1.9rem,3.4vw,3.1rem)] leading-[0.9] font-black tracking-[-0.015em] break-words uppercase">
+      <div className="min-w-0">
+        <h1 className="text-[clamp(1.5rem,3vw,2rem)] leading-tight font-semibold tracking-[-0.025em] break-words">
           {getNomAffiche(garage) || "(sans nom)"}
         </h1>
-        <p className="mt-2 font-mono text-[13px] text-mute">
+        <p className="mt-1.5 text-sm text-muted-foreground">
           {formatLieu(garage)}
         </p>
       </div>
 
-      <div className="decoupe" aria-hidden />
-
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
-        <Meta label="Dirigeant">{garage.dirigeant}</Meta>
-        {garage.enseigne.trim() !== "" && <Meta label="Nom légal">{garage.nom}</Meta>}
-        <Meta label="SIREN">
-          {garage.siren && (
-            <a
-              href={`https://annuaire-entreprises.data.gouv.fr/entreprise/${garage.siren}`}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-0.5 underline decoration-filet underline-offset-2 hover:decoration-encre"
-            >
-              {formatSiren(garage.siren)}
-              <ArrowUpRightIcon className="size-3" />
-            </a>
-          )}
-        </Meta>
-        <Meta label="Effectif">{garage.effectif && EFFECTIF_LABELS[garage.effectif]}</Meta>
-        <Meta label="Création">{annee && `${annee} · ${new Date().getFullYear() - Number(annee)} ans`}</Meta>
-        <Meta label="NAF">{garage.naf && `${garage.naf} ${NAF_LABELS[garage.naf] ?? ""}`}</Meta>
-      </dl>
+      <details className="group sm:hidden">
+        <summary className="cursor-pointer list-none text-xs font-semibold text-link">Informations du garage <span className="inline-block transition-transform group-open:rotate-90">▸</span></summary>
+        <div className="mt-3">{metadata}</div>
+      </details>
+      <div className="hidden sm:block">{metadata}</div>
     </header>
   );
 }

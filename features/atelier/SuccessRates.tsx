@@ -23,14 +23,14 @@ function RatesChart({ title, rates }: { title: string; rates: Rate[] }) {
 
   return (
     <div className="flex min-w-0 flex-col gap-2">
-      <h3 className="etiquette text-mute">{title}</h3>
+      <h3 className="text-sm font-semibold text-muted-foreground">{title}</h3>
       <ChartContainer config={config} className="aspect-auto h-[220px] w-full">
         <BarChart data={rows} margin={{ top: 18 }} barSize={20} barGap={2}>
           <CartesianGrid vertical={false} stroke={GRILLE} />
           <XAxis dataKey="nom" tickLine={false} axisLine={false} interval={0} fontSize={11} />
           <YAxis tickLine={false} axisLine={false} domain={[0, 100]} ticks={[0, 50, 100]} tickFormatter={(v) => `${v} %`} width={52} />
           <ChartTooltip
-            cursor={{ fill: "var(--color-voile)", opacity: 0.5 }}
+            cursor={{ fill: "var(--muted)", opacity: 0.5 }}
             content={
               <ChartTooltipContent
                 formatter={(value, name, item) =>

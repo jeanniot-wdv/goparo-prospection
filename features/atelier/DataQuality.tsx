@@ -9,7 +9,7 @@ function GarageLink({ g }: { g: GarageRef }) {
   return (
     <a href={notionUrl(g.id)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 hover:underline">
       {g.nom || "(sans nom)"}
-      <ArrowUpRightIcon className="size-3 text-mute" />
+      <ArrowUpRightIcon className="size-3 text-muted-foreground" />
     </a>
   );
 }
@@ -28,12 +28,12 @@ export function DataQuality({ stats }: { stats: Stats }) {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="min-w-0">
-          <h3 className="etiquette mb-2 text-mute">Téléphones en doublon</h3>
+          <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Téléphones en doublon</h3>
           <Table className="text-[12.5px]">
             <TableHeader>
               <TableRow>
-                <TableHead className="etiquette h-8">Numéro</TableHead>
-                <TableHead className="etiquette h-8">Garages</TableHead>
+                <TableHead className="h-8 text-xs font-semibold">Numéro</TableHead>
+                <TableHead className="h-8 text-xs font-semibold">Garages</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -53,14 +53,14 @@ export function DataQuality({ stats }: { stats: Stats }) {
           </Table>
         </div>
         <div className="min-w-0">
-          <h3 className="etiquette mb-2 text-mute">CP hors zone</h3>
+          <h3 className="mb-2 text-sm font-semibold text-muted-foreground">CP hors zone</h3>
           <div className="max-h-[420px] overflow-y-auto">
             <Table className="text-[12.5px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="etiquette h-8">CP</TableHead>
-                  <TableHead className="etiquette h-8">Garage</TableHead>
-                  <TableHead className="etiquette h-8">Commune</TableHead>
+                  <TableHead className="h-8 text-xs font-semibold">CP</TableHead>
+                  <TableHead className="h-8 text-xs font-semibold">Garage</TableHead>
+                  <TableHead className="h-8 text-xs font-semibold">Commune</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -70,7 +70,7 @@ export function DataQuality({ stats }: { stats: Stats }) {
                     <TableCell className="max-w-48 truncate py-1.5">
                       <GarageLink g={g} />
                     </TableCell>
-                    <TableCell className="max-w-40 truncate py-1.5 font-mono text-mute">{g.commune}</TableCell>
+                    <TableCell className="max-w-40 truncate py-1.5 text-muted-foreground">{g.commune}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
